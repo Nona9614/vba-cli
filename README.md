@@ -1,0 +1,1 @@
+This project was created to provide a way to handle easier the creation of vba projects of office products.
