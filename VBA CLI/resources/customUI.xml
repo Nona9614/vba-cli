@@ -1,0 +1,17 @@
+﻿<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="OnLoad">
+  <ribbon>
+    <tabs>
+      <tab idMso="TabDeveloper">
+        <group id="G_Debugger" label="Debugger" insertBeforeMso="GroupCode">
+          <button id="R_DebugButton" label="Debug" size="large" imageMso="MacroPlay" onAction="Callbacks.OnDebug"/>
+        </group>
+      </tab>
+    </tabs >
+  </ribbon>
+  <contextMenus>
+    <contextMenu idMso="ContextMenuCell">
+      <button id="CC_DebugButton" label="Debug" imageMso="MacroPlay" onAction="Callbacks.OnDebug" insertBeforeMso="Cut"/>
+      <menuSeparator id="CC_MenuSeparator01" insertBeforeMso="Cut"/>
+    </contextMenu>
+  </contextMenus>
+</customUI>
