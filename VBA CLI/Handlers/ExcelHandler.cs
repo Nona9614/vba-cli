@@ -19,7 +19,7 @@ namespace VBA
             path ??= Directory.GetCurrentDirectory();
 
             // Check for valid file name or valid route
-            if (IsValidFileName(name))
+            if (!IsValidFileName(name))
             {
                 Console.WriteLine($"The name '{name}' is not a valid value");
                 return false;

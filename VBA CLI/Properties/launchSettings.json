@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VBA CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "generate file \"Test File\""
+    }
+  }
+}
