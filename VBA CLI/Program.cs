@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace VBA
 {
@@ -14,26 +15,35 @@ namespace VBA
             SwitchSucceed = 5
         }
 
+        private enum InputType
+        {
+            Switch = 1,
+            Empty = 2,
+            Invalid = 3
+        }
+
         private const string SWITCH_KEY = "/";
         private const string NO_INPUT = null;
 
         static int Main(string[] args)
         {
             ReturnCodes code = 0;
+            InputType type = InputType.Empty;
             string input = args.Length < 1 ? null : args[0].ToLower().Substring(0, 1);
+            if (input != null) { type = Regex.Match(input, "[a-zA-Z]").Success ? InputType.Switch : InputType.Invalid; }
 
-            switch (input)
+            switch (type)
             {
-                case SWITCH_KEY:
-                    string command = args[0].ToLower()[1..args[0].Length];
+                case InputType.Switch:
+                    string command = args[0];
                     List<string> paramaters = GetParameters(args);
                     code = SwitchManager.SelectSwitch(command, paramaters) ? ReturnCodes.SwitchSucceed : ReturnCodes.SwitchFailed;
                     break;
-                case NO_INPUT:
+                case InputType.Empty:
                     Console.WriteLine("Welcome to VBA! Write '/help' for more information or try 'VBA generate project'.");
                     code = ReturnCodes.NoInput;
                     break;
-                default:
+                case InputType.Invalid:
                     Console.WriteLine($"Input '{args[0]}' invalid");
                     code = ReturnCodes.NonValidInput;
                     break;
