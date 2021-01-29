@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Runtime.InteropServices;
-using Excel = Microsoft.Office.Interop.Excel;
-using VBA_CLI.Switches;
 
-namespace VBA_CLI
+namespace VBA
 {
     class Program
     {
@@ -24,28 +19,27 @@ namespace VBA_CLI
 
         static int Main(string[] args)
         {
-            int code = 0;
+            ReturnCodes code = 0;
             string input = args.Length < 1 ? null : args[0].ToLower().Substring(0, 1);
-            string command;
 
             switch (input)
             {
                 case SWITCH_KEY:
-                    command = args[0].ToLower()[1..args[0].Length];
+                    string command = args[0].ToLower()[1..args[0].Length];
                     List<string> paramaters = GetParameters(args);
-                    code = SelectSwitch(command, paramaters);
+                    code = SwitchManager.SelectSwitch(command, paramaters) ? ReturnCodes.SwitchSucceed : ReturnCodes.SwitchFailed;
                     break;
                 case NO_INPUT:
                     Console.WriteLine("Welcome to VBA! Write '/help' for more information or try 'VBA generate project'.");
-                    code = (int)ReturnCodes.NoInput;
+                    code = ReturnCodes.NoInput;
                     break;
                 default:
                     Console.WriteLine($"Input '{args[0]}' invalid");
-                    code = (int)ReturnCodes.NonValidInput;
+                    code = ReturnCodes.NonValidInput;
                     break;
             }
-
-            return code;
+    
+            return (int)code;
         }
 
         private static List<string> GetParameters(string[] args)
@@ -62,20 +56,5 @@ namespace VBA_CLI
             return paramaters;
         }
 
-        private static int SelectSwitch(string command, List<string> parameters)
-        {
-            int code;
-            switch (command)
-            {
-                case "generate":
-                case "g":
-                    code = parameters != null ? SwitchGenerate.Call(parameters[0]) : (int)ReturnCodes.NonValidInput;
-                    break;
-                default:
-                    code = (int)ReturnCodes.NonValidSwitch;
-                    break;
-            }
-            return code;
-        }
     }
 }
