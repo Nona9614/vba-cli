@@ -1,74 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Runtime.InteropServices;
-using System.Text;
-using static VBA_CLI.Program;
-using Excel = Microsoft.Office.Interop.Excel;
+﻿using System.Collections.Generic;
+using Excel = VBA.ExcelHandler;
+using static VBA.Program;
+using System;
 
-namespace VBA_CLI.Switches
+namespace VBA.Switches
 {
-    public static class SwitchGenerate
+    public class SwitchGenerate : ISwitch, IDisposable
     {
-        public static int Call(string parameter)
+        private static SwitchGenerate instance;
+        public static SwitchGenerate Instance
         {
-
-            //  Checks if the passed parameter contains any character that may conflict with the file creation
-            if (parameter.IndexOfAny(Path.GetInvalidFileNameChars()) == -1)
+            get
             {
-                CreateExcelFile(parameter);
-                return (int)ReturnCodes.SwitchSucceed;
+                instance ??= new SwitchGenerate();
+                return instance;
             }
-            else
-            {
-                return (int)ReturnCodes.SwitchFailed;
-            }
-
         }
 
-        private static void CreateExcelFile(string fileFullName)
+        public bool Call(List<string> parameters)
         {
-            Excel.Application xlApp = new Excel.Application();
-            Excel.Workbook xlWbk = xlApp.Workbooks.Add();
-
-            //  Add code here
-            fileFullName = @"D:\Downloads\TestExcel.xlsm";
-            if(!File.Exists(fileFullName))
+            bool result;
+            switch (parameters[0])
             {
-                xlWbk.SaveAs2(fileFullName, Excel.XlFileFormat.xlOpenXMLWorkbookMacroEnabled);
+                case "file":
+                    // Checks if a directory value was set
+                    result = Excel.CreateExcelFile(parameters[1], parameters.Count > 2 ? parameters[1] : null);
+                    break;
+                default:
+                    result = false;
+                    break;
             }
-
-            xlWbk.Close();
-            xlApp.Quit();
-            Marshal.ReleaseComObject(xlApp);
-            Marshal.ReleaseComObject(xlWbk);
-
-            AddCustomUI(fileFullName, null);
+            return result;
         }
 
-        private static void AddCustomUI(string fileRoute, string uiContent)
+        public void Dispose()
         {
-
-            FileStream _stream = File.Open(fileRoute, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-            ZipArchive archive = new ZipArchive(_stream, ZipArchiveMode.Update);
-            ZipArchiveEntry rels = archive.GetEntry("_rels/.rels");
-            ZipArchiveEntry customUI = archive.GetEntry("customUI/customUI.xml") ?? archive.CreateEntry("customUI/customUI.xml");
-
-            byte[] relsBytes = File.ReadAllBytes(@$"{projectPath}/resources/.rels");
-            byte[] customUIBytes = File.ReadAllBytes(@$"{projectPath}/resources/customUI.xml");
-
-            rels.Open().Write(relsBytes, 0, relsBytes.Length);
-            customUI.Open().Write(customUIBytes, 0, customUIBytes.Length);
-
-            archive.Dispose();
+            instance.Dispose();
         }
 
-#if (DEBUG)
-        private static string projectPath = @"D:\Documents\Personal\repos\apps\vba-cli\VBA CLI";
-#else
-        private static string projectPath = Assembly.GetExecutingAssembly().CodeBase.Replace($"/{Assembly.GetExecutingAssembly().GetName().Name}.dll", "").Replace("file:///", "");
-#endif
     }
 
 }
