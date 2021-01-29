@@ -1,14 +1,12 @@
 ﻿using Microsoft.Office.Core;
-using Microsoft.Vbe.Interop;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
-using System.Text;
 using VBE = Microsoft.Vbe.Interop;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.Text.RegularExpressions;
 
 namespace VBA
 {
@@ -21,11 +19,12 @@ namespace VBA
             path ??= Directory.GetCurrentDirectory();
 
             // Check for valid file name or valid route
-            if (!(name.IndexOfAny(Path.GetInvalidFileNameChars()) == -1)) {
+            if (IsValidFileName(name))
+            {
                 Console.WriteLine($"The name '{name}' is not a valid value");
                 return false;
-            } 
-            if(!Directory.Exists(path))
+            }
+            if (!Directory.Exists(path))
             {
                 Console.WriteLine($"The path '{path}' is not a valid value");
                 return false;
@@ -62,26 +61,77 @@ namespace VBA
 
             EnableTrustCenterSecurity();
 
+            Console.WriteLine(@$"Created successfully file: '{path}/{name}'");
+
             return true;
         }
-
-        private static void AddCustomUI(string fileRoute, string uiContent)
+        public static bool AddCustomUI(string excelFileFullName, string customUIFullName, bool validateFileNames = false)
         {
+            if (validateFileNames)
+            {
+                if (!(File.Exists(excelFileFullName) && File.Exists(customUIFullName)))
+                {
+                    Console.WriteLine($"The excel file path '{excelFileFullName}' and the customUI path '{customUIFullName}' are not valid");
+                    return false;
+                }
+                if (!File.Exists(excelFileFullName))
+                {
+                    Console.WriteLine($"The excel file path '{excelFileFullName}' is not a valid");
+                    return false;
+                }
+                if (!File.Exists(customUIFullName))
+                {
+                    Console.WriteLine($"The customUI path '{customUIFullName}' is not a valid");
+                    return false;
+                }
+                if (IsXMLFile(excelFileFullName) && IsExcelFile(customUIFullName))
+                {
+                    Console.WriteLine($"Ups! Values sent oposite way...");
+                    string temporal = excelFileFullName;
+                    excelFileFullName = customUIFullName;
+                    customUIFullName = temporal;
+                }
+                if (!IsExcelFile(excelFileFullName))
+                {
+                    Console.WriteLine($"The is not an excel file '{excelFileFullName}'");
+                    return false;
+                }
+                if (!IsXMLFile(customUIFullName))
+                {
+                    Console.WriteLine($"The is not an XML file '{customUIFullName}'");
+                    return false;
+                }
+            }
 
-            FileStream _stream = File.Open(fileRoute, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+            FileStream _stream = File.Open(excelFileFullName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
             ZipArchive archive = new ZipArchive(_stream, ZipArchiveMode.Update);
             ZipArchiveEntry rels = archive.GetEntry("_rels/.rels");
             ZipArchiveEntry customUI = archive.GetEntry("customUI/customUI.xml") ?? archive.CreateEntry("customUI/customUI.xml");
 
             byte[] relsBytes = File.ReadAllBytes(@$"{projectPath}/resources/.rels");
-            byte[] customUIBytes = File.ReadAllBytes(@$"{projectPath}/resources/customUI.xml");
+            byte[] customUIBytes = File.ReadAllBytes(customUIFullName ?? @$"{projectPath}/resources/customUI.xml");
 
-            rels.Open().Write(relsBytes, 0, relsBytes.Length);
-            customUI.Open().Write(customUIBytes, 0, customUIBytes.Length);
+            Stream _rels = rels.Open();
+            Stream _customUI = customUI.Open();
+
+            _rels.Write(relsBytes, 0, relsBytes.Length);
+            _rels.Dispose();
+            _customUI.Write(customUIBytes, 0, customUIBytes.Length);
+            _customUI.Dispose();
 
             archive.Dispose();
-        }
+            Console.WriteLine("Custom UI added successfully");
 
+            return true;
+        }
+        private static bool IsExcelFile(string name)
+        {
+            return Regex.Match(Path.GetExtension(name), @".*\.[xX][lL]*").Success;
+        }
+        private static bool IsXMLFile(string name)
+        {
+            return Regex.Match(Path.GetExtension(name), @".*\.[xX][mM][lL]").Success;
+        }
         private static void AddCallbacksModule(Excel.Workbook xlWbk)
         {
 
@@ -97,7 +147,6 @@ namespace VBA
 
             xlWbk.Application.AutomationSecurity = MsoAutomationSecurity.msoAutomationSecurityByUI;
         }
-
         private static void DisableTrustCenterSecurity()
         {
             // Disables the security for VBA Object Model
@@ -113,6 +162,11 @@ namespace VBA
             RegistryKey VBOMKey = Registry.CurrentUser.OpenSubKey(subkey, true);
             VBOMKey.DeleteValue(key);
             VBOMKey.Close();
+        }
+
+        private static bool IsValidFileName(string name)
+        {
+            return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
         }
 
         private static string version = null;

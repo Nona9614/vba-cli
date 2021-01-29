@@ -16,6 +16,10 @@ namespace VBA
                 case "g":
                     @switch = SwitchGenerate.Instance;
                     break;
+                case "add":
+                case "a":
+                    @switch = SwitchAdd.Instance;
+                    break;
                 default:
                     Console.WriteLine($"Switch '{command}' not invalid");
                     break;
