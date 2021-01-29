@@ -25,7 +25,7 @@ namespace VBA
                 Console.WriteLine($"The name '{name}' is not a valid value");
                 return false;
             } 
-            else if(Directory.Exists(path))
+            if(!Directory.Exists(path))
             {
                 Console.WriteLine($"The path '{path}' is not a valid value");
                 return false;

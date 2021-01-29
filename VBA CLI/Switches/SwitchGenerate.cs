@@ -24,9 +24,10 @@ namespace VBA.Switches
             {
                 case "file":
                     // Checks if a directory value was set
-                    result = Excel.CreateExcelFile(parameters[1], parameters.Count > 2 ? parameters[1] : null);
+                    result = Excel.CreateExcelFile(parameters[1], parameters.Count > 2 ? parameters[2] : null);
                     break;
                 default:
+                    Console.WriteLine($"Option '{parameters[0]}' is not valid");
                     result = false;
                     break;
             }
