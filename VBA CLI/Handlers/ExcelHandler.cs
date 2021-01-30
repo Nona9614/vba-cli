@@ -43,6 +43,15 @@ namespace VBA
             DisableTrustCenterSecurity();
 
             xlApp = new Excel.Application();
+            if (File.Exists($@"{path}\{name}.xlsm")) {
+                Console.Write("There is a file already created with this name and path. \nWould you like to override? (y/n) --> ");
+                if (!(Regex.Match(Console.ReadLine().Trim(), "^y*").Length > 0))
+                {
+                    Console.WriteLine("Process Canceled");
+                    return false;
+                }
+            }
+            xlApp.DisplayAlerts = false;
             Excel.Workbook xlWbk = xlApp.Workbooks.Add();
             Excel.XlFileFormat xlFileFormat = Excel.XlFileFormat.xlOpenXMLWorkbookMacroEnabled;
 
@@ -50,7 +59,7 @@ namespace VBA
             string fullName = $@"{path}/{name}.xlsm";
             AddCallbacksModule(xlWbk);
 
-            xlApp.Visible = true;
+            xlApp.DisplayAlerts = true;
             xlWbk.SaveAs(fullName, xlFileFormat);
             xlWbk.Close();
             xlApp.Quit();
@@ -61,7 +70,7 @@ namespace VBA
 
             EnableTrustCenterSecurity();
 
-            Console.WriteLine(@$"Created successfully file: '{path}/{name}'");
+            Console.WriteLine(@$"Created successfully file: '{path}\{name}.xlsm'");
 
             return true;
         }
@@ -126,11 +135,11 @@ namespace VBA
         }
         private static bool IsExcelFile(string name)
         {
-            return Regex.Match(Path.GetExtension(name), @".*\.[xX][lL]*").Success;
+            return Regex.Match(Path.GetExtension(name), @".*\.[xX][lL]*").Length > 0;
         }
         private static bool IsXMLFile(string name)
         {
-            return Regex.Match(Path.GetExtension(name), @".*\.[xX][mM][lL]").Success;
+            return Regex.Match(Path.GetExtension(name), @".*\.[xX][mM][lL]").Length > 0;
         }
         private static void AddCallbacksModule(Excel.Workbook xlWbk)
         {
