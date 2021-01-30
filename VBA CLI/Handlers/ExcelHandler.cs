@@ -42,7 +42,6 @@ namespace VBA
 
             DisableTrustCenterSecurity();
 
-            xlApp = new Excel.Application();
             if (File.Exists($@"{path}\{name}.xlsm")) {
                 Console.Write("There is a file already created with this name and path. \nWould you like to override? (y/n) --> ");
                 if (!(Regex.Match(Console.ReadLine().Trim(), "^y*").Length > 0))
@@ -51,16 +50,17 @@ namespace VBA
                     return false;
                 }
             }
-            xlApp.DisplayAlerts = false;
+            xlApp = new Excel.Application();
             Excel.Workbook xlWbk = xlApp.Workbooks.Add();
             Excel.XlFileFormat xlFileFormat = Excel.XlFileFormat.xlOpenXMLWorkbookMacroEnabled;
+            xlApp.DisplayAlerts = false;
 
             //  Creating file
             string fullName = $@"{path}/{name}.xlsm";
             AddCallbacksModule(xlWbk);
 
-            xlApp.DisplayAlerts = true;
             xlWbk.SaveAs(fullName, xlFileFormat);
+            xlApp.DisplayAlerts = true;
             xlWbk.Close();
             xlApp.Quit();
             Marshal.ReleaseComObject(xlApp);
