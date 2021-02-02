@@ -4,7 +4,7 @@ using System.Text;
 
 namespace VBA.Switches
 {
-    interface ISwitch
+    interface ICommand
     {
         bool Call(List<string> parameters);
     }

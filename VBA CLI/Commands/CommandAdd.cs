@@ -6,14 +6,14 @@ using Excel = VBA.ExcelHandler;
 
 namespace VBA.Switches
 {
-    class SwitchAdd: ISwitch, IDisposable
+    class CommandAdd: ICommand, IDisposable
     {
-        private static SwitchAdd instance;
-        public static SwitchAdd Instance
+        private static CommandAdd instance;
+        public static CommandAdd Instance
         {
             get
             {
-                instance ??= new SwitchAdd();
+                instance ??= new CommandAdd();
                 return instance;
             }
         }

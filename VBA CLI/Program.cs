@@ -37,10 +37,10 @@ namespace VBA
                 case InputType.Switch:
                     string command = args[0];
                     List<string> paramaters = GetParameters(args);
-                    code = SwitchManager.SelectSwitch(command, paramaters) ? ReturnCodes.SwitchSucceed : ReturnCodes.SwitchFailed;
+                    code = CommandManager.SelectSwitch(command, paramaters) ? ReturnCodes.SwitchSucceed : ReturnCodes.SwitchFailed;
                     break;
                 case InputType.Empty:
-                    Console.WriteLine("Welcome to VBA! Write '/help' for more information or try 'VBA generate project'.");
+                    Console.WriteLine("Welcome to VBA! Write 'help' for more information or try 'VBA generate project'.");
                     code = ReturnCodes.NoInput;
                     break;
                 case InputType.Invalid:

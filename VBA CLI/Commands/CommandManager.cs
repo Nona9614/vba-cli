@@ -5,11 +5,11 @@ using VBA.Switches;
 
 namespace VBA
 {
-    public static class SwitchManager
+    public static class CommandManager
     {
         public static bool SelectSwitch(string command, List<string> parameters)
         {
-            ISwitch @switch = null;
+            ICommand @switch = null;
             switch (command)
             {
                 case "generate":
@@ -18,7 +18,7 @@ namespace VBA
                     break;
                 case "add":
                 case "a":
-                    @switch = SwitchAdd.Instance;
+                    @switch = CommandAdd.Instance;
                     break;
                 default:
                     Console.WriteLine($"Switch '{command}' not invalid");

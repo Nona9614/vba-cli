@@ -5,7 +5,7 @@ using System;
 
 namespace VBA.Switches
 {
-    public class SwitchGenerate : ISwitch, IDisposable
+    public class SwitchGenerate : ICommand, IDisposable
     {
         private static SwitchGenerate instance;
         public static SwitchGenerate Instance
