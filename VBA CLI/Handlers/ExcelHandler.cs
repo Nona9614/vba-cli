@@ -46,7 +46,7 @@ namespace VBA
                 Console.Write("There is a file already created with this name and path. \nWould you like to override? (y/n) --> ");
                 if (!(Regex.Match(Console.ReadLine().Trim(), "^y*").Length > 0))
                 {
-                    Console.WriteLine("Process Canceled");
+                    Console.WriteLine("Proccess Canceled");
                     return false;
                 }
             }
@@ -78,14 +78,14 @@ namespace VBA
         {
             if (validateFileNames)
             {
-                if (!(File.Exists(excelFileFullName) && File.Exists(customUIFullName)))
+                if (!(File.Exists(excelFileFullName) || File.Exists(customUIFullName)))
                 {
                     Console.WriteLine($"The excel file path '{excelFileFullName}' and the customUI path '{customUIFullName}' are not valid");
                     return false;
                 }
                 if (!File.Exists(excelFileFullName))
                 {
-                    Console.WriteLine($"The excel file path '{excelFileFullName}' is not a valid");
+                    Console.WriteLine($"The excel file path '{excelFileFullName}' is not valid");
                     return false;
                 }
                 if (!File.Exists(customUIFullName))
