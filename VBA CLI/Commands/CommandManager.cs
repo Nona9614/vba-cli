@@ -14,7 +14,7 @@ namespace VBA
             {
                 case "generate":
                 case "g":
-                    @switch = SwitchGenerate.Instance;
+                    @switch = CommandGenerate.Instance;
                     break;
                 case "add":
                 case "a":

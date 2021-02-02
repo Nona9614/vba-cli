@@ -5,14 +5,14 @@ using System;
 
 namespace VBA.Switches
 {
-    public class SwitchGenerate : ICommand, IDisposable
+    public class CommandGenerate : ICommand, IDisposable
     {
-        private static SwitchGenerate instance;
-        public static SwitchGenerate Instance
+        private static CommandGenerate instance;
+        public static CommandGenerate Instance
         {
             get
             {
-                instance ??= new SwitchGenerate();
+                instance ??= new CommandGenerate();
                 return instance;
             }
         }
