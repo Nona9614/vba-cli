@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using Excel = VBA.ExcelHandler;
-using static VBA.Program;
 using System;
-using System.IO;
 using System.Text.RegularExpressions;
 using VBA.Handlers;
 

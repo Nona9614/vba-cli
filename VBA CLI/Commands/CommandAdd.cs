@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using Excel = VBA.ExcelHandler;
 
 namespace VBA.Switches
@@ -39,11 +35,11 @@ namespace VBA.Switches
                         case 2:
                             // CustomUI file name was not set, default will be used
                             customUI = @$"{Project.Files.CustomUI}";
-                            excel = SetDefaultPath(parameters[1], $"{Directory.GetCurrentDirectory()}");
+                            excel = Project.Paths.CheckForDefaultPath(parameters[1]);
                             break;
                         case 3:
-                            customUI = SetDefaultPath(parameters[2], $@"{Directory.GetCurrentDirectory()}\resources");
-                            excel = SetDefaultPath(parameters[1], Directory.GetCurrentDirectory());
+                            customUI = Project.Paths.CheckForDefaultPath(parameters[2], $@"{Project.Paths.Resources}");
+                            excel = Project.Paths.CheckForDefaultPath(parameters[1]);
                             break;
                         default:
                             Console.WriteLine("Not recognized parameters");
@@ -60,19 +56,7 @@ namespace VBA.Switches
             }
             return result;
         }
-        // If it is a valid file name with no path, a default will be used
-        private static string SetDefaultPath(string name, string path)
-        {
-            // Checks if the file name comes alone or with a path
-            if (File.Exists(name))
-            {
-                return name;
-            }
-            else
-            {
-                return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 ? $@"{path}\{name}" : null;
-            }
-        }
+        // Release all resources
         public void Dispose()
         {
             instance.Dispose();
