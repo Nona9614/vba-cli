@@ -13,21 +13,20 @@ namespace VBA
     public static class ExcelHandler
     {
         //  Returns true if the creation succeed, if not returns false
-        public static bool CreateExcelFile(string name, string path)
+        public static bool CreateExcelFile(string name)
         {
-            // If was not set any directory then use current
-            path ??= Directory.GetCurrentDirectory();
+            // Adds macro enabled extension
+            name = $"{name}.xlsm";
 
-            // Check for valid file name or valid route
-            if (!IsValidFileName(name))
+            // Validate overriding
+            if (File.Exists(name))
             {
-                Console.WriteLine($"The name '{name}' is not a valid value");
-                return false;
-            }
-            if (!Directory.Exists(path))
-            {
-                Console.WriteLine($"The path '{path}' is not a valid value");
-                return false;
+                Console.Write("There is a file already created with this name and path. \nWould you like to override? (y/n) --> ");
+                if (!(Regex.Match(Console.ReadLine().Trim(), "^y*").Length > 0))
+                {
+                    Console.WriteLine("Proccess Canceled");
+                    return false;
+                }
             }
 
             // Gets the current office version
@@ -42,83 +41,43 @@ namespace VBA
 
             DisableTrustCenterSecurity();
 
-            if (File.Exists($@"{path}\{name}.xlsm")) {
-                Console.Write("There is a file already created with this name and path. \nWould you like to override? (y/n) --> ");
-                if (!(Regex.Match(Console.ReadLine().Trim(), "^y*").Length > 0))
-                {
-                    Console.WriteLine("Proccess Canceled");
-                    return false;
-                }
-            }
             xlApp = new Excel.Application();
             Excel.Workbook xlWbk = xlApp.Workbooks.Add();
             Excel.XlFileFormat xlFileFormat = Excel.XlFileFormat.xlOpenXMLWorkbookMacroEnabled;
             xlApp.DisplayAlerts = false;
 
             //  Creating file
-            string fullName = $@"{path}/{name}.xlsm";
             AddCallbacksModule(xlWbk);
 
-            xlWbk.SaveAs(fullName, xlFileFormat);
+            xlWbk.SaveAs(name, xlFileFormat);
             xlApp.DisplayAlerts = true;
             xlWbk.Close();
             xlApp.Quit();
             Marshal.ReleaseComObject(xlApp);
             Marshal.ReleaseComObject(xlWbk);
 
-            AddCustomUI(fullName, null);
+            AddCustomUI(name, Executable.Files.CustomUI);
 
             EnableTrustCenterSecurity();
 
-            Console.WriteLine(@$"Created successfully file: '{path}\{name}.xlsm'");
+            Console.WriteLine(@$"Created successfully file: '{name}'");
 
             return true;
         }
-        public static bool AddCustomUI(string excelFileFullName, string customUIFullName, bool validateFileNames = false)
+        public static bool AddCustomUI(string excelFileName, string customUIName)
         {
-            if (validateFileNames)
+            if (!IsXMLFile(customUIName) || !IsExcelFile(excelFileName))
             {
-                if (!(File.Exists(excelFileFullName) || File.Exists(customUIFullName)))
-                {
-                    Console.WriteLine($"The excel file path '{excelFileFullName}' and the customUI path '{customUIFullName}' are not valid");
-                    return false;
-                }
-                if (!File.Exists(excelFileFullName))
-                {
-                    Console.WriteLine($"The excel file path '{excelFileFullName}' is not valid");
-                    return false;
-                }
-                if (!File.Exists(customUIFullName))
-                {
-                    Console.WriteLine($"The customUI path '{customUIFullName}' is not a valid");
-                    return false;
-                }
-                if (IsXMLFile(excelFileFullName) && IsExcelFile(customUIFullName))
-                {
-                    Console.WriteLine($"Ups! Values sent oposite way...");
-                    string temporal = excelFileFullName;
-                    excelFileFullName = customUIFullName;
-                    customUIFullName = temporal;
-                }
-                if (!IsExcelFile(excelFileFullName))
-                {
-                    Console.WriteLine($"The is not an excel file '{excelFileFullName}'");
-                    return false;
-                }
-                if (!IsXMLFile(customUIFullName))
-                {
-                    Console.WriteLine($"The is not an XML file '{customUIFullName}'");
-                    return false;
-                }
+                return false;
             }
 
-            FileStream _stream = File.Open(excelFileFullName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+            FileStream _stream = File.Open(excelFileName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
             ZipArchive archive = new ZipArchive(_stream, ZipArchiveMode.Update);
             ZipArchiveEntry rels = archive.GetEntry("_rels/.rels");
             ZipArchiveEntry customUI = archive.GetEntry("customUI/customUI.xml") ?? archive.CreateEntry("customUI/customUI.xml");
 
-            byte[] relsBytes = File.ReadAllBytes(@$"{projectPath}/resources/.rels");
-            byte[] customUIBytes = File.ReadAllBytes(customUIFullName ?? @$"{projectPath}/resources/customUI.xml");
+            byte[] relsBytes = File.ReadAllBytes(@$"{Executable.Files.Rels}");
+            byte[] customUIBytes = File.ReadAllBytes(customUIName ?? @$"{Executable.Files.CustomUI}");
 
             Stream _rels = rels.Open();
             Stream _customUI = customUI.Open();
@@ -135,11 +94,37 @@ namespace VBA
         }
         private static bool IsExcelFile(string name)
         {
-            return Regex.Match(Path.GetExtension(name), @".*\.[xX][lL]*").Length > 0;
+            if (!File.Exists(name))
+            {
+                Console.WriteLine($"The excel file '{name}' was not found");
+                return false;
+            }
+            if (Regex.Match(Path.GetExtension(name), @".*\.[xX][lL]*").Length > 0)
+            {
+                return true;
+            }
+            else 
+            {
+                Console.WriteLine($"This is not an excel file '{name}'");
+                return false; ;
+            }
         }
         private static bool IsXMLFile(string name)
         {
-            return Regex.Match(Path.GetExtension(name), @".*\.[xX][mM][lL]").Length > 0;
+            if (!File.Exists(name))
+            {
+                Console.WriteLine($"The xml file '{name}' was not found");
+                return false;
+            }
+            if (Regex.Match(Path.GetExtension(name), @".*\.[xX][mM][lL]").Length > 0)
+            {
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"This is not an xml file '{name}'");
+                return false; ;
+            }
         }
         private static void AddCallbacksModule(Excel.Workbook xlWbk)
         {
@@ -152,7 +137,7 @@ namespace VBA
 
             // Adds code to the module
             code.Name = "Callbacks";
-            code.InsertLines(1, File.ReadAllText($"{projectPath}/resources/Callbacks.bas"));
+            code.InsertLines(1, File.ReadAllText($"{Executable.Files.CallbacksModule}"));
 
             xlWbk.Application.AutomationSecurity = MsoAutomationSecurity.msoAutomationSecurityByUI;
         }
@@ -182,10 +167,5 @@ namespace VBA
         private static readonly string subkey = @$"Software\Microsoft\Office\{version}\Excel\Security";
         private const string key = "AccessVBOM";
 
-#if (DEBUG)
-        private static string projectPath = @"D:\Documents\Personal\repos\apps\vba-cli\VBA CLI";
-#else
-        private static string projectPath = Assembly.GetExecutingAssembly().CodeBase.Replace($"/{Assembly.GetExecutingAssembly().GetName().Name}.dll", "").Replace("file:///", "");
-#endif
     }
 }
