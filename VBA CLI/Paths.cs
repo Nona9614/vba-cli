@@ -8,6 +8,30 @@ namespace VBA.Project
 {
     public static class Paths
     {
+        // If it is a valid file name with no path, a default will be used
+        public static string CheckForDefaultPath(string name, string path)
+        {
+            if (File.Exists(name))
+            {
+                return name;
+            }
+            else
+            {
+                return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 ? $@"{path}\{name}" : null;
+            }
+        }
+        // This overload uses the project path as the preset
+        public static string CheckForDefaultPath(string name)
+        {
+            if (File.Exists(name))
+            {
+                return name;
+            }
+            else
+            {
+                return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 ? $@"{Base}\{name}" : null;
+            }
+        }
 #if (DEBUG)
         public static string Base { get { return @"D:/Documents/Personal/repos/apps/vba-cli/VBA CLI"; } }
 #else
