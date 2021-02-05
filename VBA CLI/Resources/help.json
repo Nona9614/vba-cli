@@ -1,0 +1,48 @@
+{
+  "commands": [
+    {
+      "name": "add",
+      "shortcut": "a",
+      "description": "Adds content to a file depending on subcommands.",
+      "subcommands": [
+        {
+          "name": "customUI",
+          "description": "Inserts or creates a customUI in specified excel file.",
+          "arguments": [
+            {
+              "name": "excel-file-name",
+              "description": "Excel file name to insert the customUI. (If only a file name is specified then the project path will be considered)",
+              "required": "true",
+              "default": ""
+            },
+            {
+              "name": "customui-file-name",
+              "description": "CustomUI file name to insert the customUI. (If only a file name is specified then the project path will be considered)",
+              "required": "false",
+              "default": "/resources/customUI.xml"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "generate",
+      "shortcut": "g",
+      "description": "Generates content for the project depending on subcommands.",
+      "subcommands": [
+        {
+          "name": "excel-file",
+          "description": "Creates an excel file with a customUI within it.",
+          "arguments": [
+            {
+              "name": "excel-file-name",
+              "description": "Excel file name to create. (If only a file name is specified then the project path will be considered)",
+              "required": "true",
+              "default": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
