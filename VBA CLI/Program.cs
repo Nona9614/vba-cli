@@ -22,9 +22,6 @@ namespace VBA
             Invalid = 3
         }
 
-        private const string SWITCH_KEY = "/";
-        private const string NO_INPUT = null;
-
         static int Main(string[] args)
         {
             ReturnCodes code = 0;
