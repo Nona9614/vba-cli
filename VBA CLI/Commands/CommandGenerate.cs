@@ -2,6 +2,9 @@
 using Excel = VBA.ExcelHandler;
 using static VBA.Program;
 using System;
+using System.IO;
+using System.Text.RegularExpressions;
+using VBA.Handlers;
 
 namespace VBA.Switches
 {
@@ -19,12 +22,34 @@ namespace VBA.Switches
 
         public bool Call(List<string> parameters)
         {
-            bool result;
+            if (parameters == null)
+            {
+                Console.WriteLine("This command needs parameters");
+                return false;
+            }
+            bool result = false;
             switch (parameters[0])
             {
-                case "file":
-                    // Checks if a directory value was set
-                    result = Excel.CreateExcelFile(parameters[1], parameters.Count > 2 ? parameters[2] : null);
+                case "customUI":
+                    XMLHandler.GenerateDefaultCustomUI();
+                    break;
+                case "excel-file":
+                    string name = null;
+                    switch (parameters.Count)
+                    {
+                        case 2:
+                            name = parameters[1];
+                            name = Regex.Match(name, @"\w\.*").Length < 0 ? $"{name}.xlsm" : name;
+                            name = Project.Paths.CheckForDefaultPath(name);
+                            break;
+                        default:
+                            Console.WriteLine("Not recognized parameters"); 
+                            break;
+                    }
+                    if (name != null) 
+                    {
+                        result = Excel.CreateExcelFile(name); 
+                    }
                     break;
                 default:
                     Console.WriteLine($"Option '{parameters[0]}' is not valid");
@@ -33,7 +58,7 @@ namespace VBA.Switches
             }
             return result;
         }
-
+        // Disposes of resources 
         public void Dispose()
         {
             instance.Dispose();
