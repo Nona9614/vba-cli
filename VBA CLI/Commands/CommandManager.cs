@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using VBA.Commands;
 using VBA.Switches;
 
 namespace VBA
@@ -19,6 +20,10 @@ namespace VBA
                 case "add":
                 case "a":
                     @switch = CommandAdd.Instance;
+                    break;
+                case "configuration":
+                case "c":
+                    @switch = CommandConfiguration.Instance;
                     break;
                 default:
                     Console.WriteLine($"Switch '{command}' not invalid");
