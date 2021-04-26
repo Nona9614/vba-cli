@@ -44,7 +44,11 @@ namespace VBA.Executable
 {
     public static class Paths
     {
+#if DEBUG
+        public static string Base { get { return Assembly.GetExecutingAssembly().CodeBase.Replace($"/{Assembly.GetExecutingAssembly().GetName().Name}.dll", "").Replace("file:///", "").Replace(@"/bin/Debug/netcoreapp3.1", ""); } }
+#else
         public static string Base { get { return Assembly.GetExecutingAssembly().CodeBase.Replace($"/{Assembly.GetExecutingAssembly().GetName().Name}.dll", "").Replace("file:///", "").Replace(@"/bin/Release/netcoreapp3.1", ""); } }
+#endif
         public static string Resources { get { return $@"{Base}/Resources"; } }
     }
 }
