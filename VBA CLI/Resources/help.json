@@ -10,7 +10,7 @@
           "id": 0,
           "name": "customUI",
           "description": "Inserts or creates a customUI in specified excel file.",
-          "use": "add generate customUI <excel-file-name> <customui-file-name>",
+          "use": "add customUI <excel-file-name> <customui-file-name>",
           "arguments": [
             {
               "id": 0,
