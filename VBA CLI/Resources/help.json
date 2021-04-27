@@ -1,44 +1,111 @@
 {
   "commands": [
     {
+      "id": 0,
       "name": "add",
       "shortcut": "a",
       "description": "Adds content to a file depending on subcommands.",
       "subcommands": [
         {
+          "id": 0,
           "name": "customUI",
           "description": "Inserts or creates a customUI in specified excel file.",
+          "use": "add generate customUI <excel-file-name> <customui-file-name>",
           "arguments": [
             {
+              "id": 0,
               "name": "excel-file-name",
               "description": "Excel file name to insert the customUI. (If only a file name is specified then the project path will be considered)",
               "required": "true",
-              "default": ""
+              "default": "{project}/<excel-file-name>.xlsm"
             },
             {
+              "id": 1,
               "name": "customui-file-name",
               "description": "CustomUI file name to insert the customUI. (If only a file name is specified then the project path will be considered)",
-              "required": "false",
-              "default": "/resources/customUI.xml"
+              "default": "{project}/resources/customUI.xml"
             }
           ]
         }
       ]
     },
     {
+      "id": 1,
       "name": "generate",
       "shortcut": "g",
       "description": "Generates content for the project depending on subcommands.",
       "subcommands": [
         {
+          "id": 1,
           "name": "excel-file",
           "description": "Creates an excel file with a customUI within it.",
+          "use": "generate excel-file <excel-file-name>",
           "arguments": [
             {
+              "id": 2,
               "name": "excel-file-name",
               "description": "Excel file name to create. (If only a file name is specified then the project path will be considered)",
-              "required": "true",
-              "default": ""
+              "required": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "configuration",
+      "shortcut": "c",
+      "description": "Handles configuration for the project",
+      "subcommands": [
+        {
+          "id": 2,
+          "name": "specify-version",
+          "description": "Sets an specific version number 'a.b.c.d' to the project",
+          "use": "configuration specify-version <a> <b> <c> <d>",
+          "arguments": [
+            {
+              "id": 3,
+              "name": "a.b.c.d",
+              "description": "Sets the version for: releases, features, bugfixes and optimizations",
+              "default": "d"
+            },
+            {
+              "id": 4,
+              "name": "x.b.c.d",
+              "description": "Sets the version for: features, bugfixes and optimizations",
+              "default": "d"
+            },
+            {
+              "id": 5,
+              "name": "x.x.c.d",
+              "description": "Sets the version for bugfixes and optimizations",
+              "default": "d"
+            },
+            {
+              "id": 6,
+              "name": "x.x.x.d",
+              "description": "Sets the version for optimizations",
+              "default": "d"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "update-version",
+          "description": "Updates the project version depending on the changes realized",
+          "use": "configuration update-version <change>",
+          "arguments": [
+            {
+              "id": 7,
+              "name": "change",
+              "description": "Sets the version for 'a.b.c.d'",
+              "options": [
+                "release, rls",
+                "feature, ftr",
+                "bugfix, bfx",
+                "optimization, opt"
+              ],
+              "default": "optimization"
             }
           ]
         }

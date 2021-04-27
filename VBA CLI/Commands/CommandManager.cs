@@ -25,6 +25,10 @@ namespace VBA
                 case "c":
                     @switch = CommandConfiguration.Instance;
                     break;
+                case "help":
+                case "h":
+                    @switch = CommandHelp.Instance;
+                    break;
                 default:
                     Console.WriteLine($"Switch '{command}' not invalid");
                     break;

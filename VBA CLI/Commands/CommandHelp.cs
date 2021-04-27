@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using VBA.Handlers;
 using VBA.Switches;
 
 public class CommandHelp: ICommand, IDisposable
@@ -21,11 +22,32 @@ public class CommandHelp: ICommand, IDisposable
 
     public bool Call(List<string> parameters)
     {
-        return true;
+        string message = null;
+        bool result = false;
+        if (parameters == null)
+        {
+            message = HelpContentHandler.MainMessage();
+        }
+        else
+        {
+            if ( parameters.Count == 1)
+            {
+                message = HelpContentHandler.CommandContent(parameters[0]);
+            }
+            else if (parameters.Count == 2) {
+                message = HelpContentHandler.SubcommandContent(parameters[0], parameters[1]);
+            }            
+        }
+        if (message != null)
+        {
+            Console.WriteLine(message);
+            result = true;
+        }
+        return result;
     }
 
     public void Dispose()
     {
-        throw new NotImplementedException();
+        instance.Dispose();
     }
 }
