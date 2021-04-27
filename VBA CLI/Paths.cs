@@ -6,8 +6,31 @@ using System.IO;
 
 namespace VBA.Project
 {
-    public static class Paths
+    public static partial class Structure
     {
+        public static void CreateFolders()
+        {
+            Console.WriteLine("Creating forms folder...");
+            Directory.CreateDirectory(Paths.VBE.Forms);
+            Console.WriteLine("Creating classes folder...");
+            Directory.CreateDirectory(Paths.VBE.Classes);
+            Console.WriteLine("Creating modules folder...");
+            Directory.CreateDirectory(Paths.VBE.Modules);
+            Console.WriteLine("Creating customUI folder...");
+            Directory.CreateDirectory(Paths.VBE.CustomUI);
+        }
+        public static void CreateDefaultFiles()
+        {
+            Console.WriteLine("Creating default VBA class...");
+            File.Copy(Executable.Files.VBE.Classes.Default, Files.VBE.Classes.Default, true);
+            Console.WriteLine("Creating default VBA callbacks module...");
+            File.Copy(Executable.Files.VBE.Modules.Callbacks, Files.VBE.Modules.Callbacks, true);
+            Console.WriteLine("Creating default VBA customUI...");
+            File.Copy(Executable.Files.VBE.CustomUI.Default, Files.VBE.CustomUI.Default, true);
+        }
+    }
+    public static class Paths
+    {        
         // If it is a valid file name with no path, a default will be used
         public static string CheckForDefaultPath(string name, string path)
         {
@@ -29,15 +52,34 @@ namespace VBA.Project
             }
             else
             {
-                return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 ? $@"{Base}\{name}" : null;
+                return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 ? $@"{Base}/{name}" : null;
             }
         }
+
 #if (DEBUG)
-        public static string Base { get { return @"D:/Documents/Personal/repos/apps/vba-cli/VBA CLI"; } }
+        private static string _base = @"D:/Documents/Personal/repos/apps/vba-cli/VBA CLI";
+        public static string Base
+        { 
+            get { return _base; }
+            set { _base = value; }
+        }
 #else
-        public static string Base { get { return Directory.GetCurrentDirectory(); } }
+        private static string _base = Directory.GetCurrentDirectory();
+        public static string Base 
+        { 
+            get { return Directory.GetCurrentDirectory(); } 
+            set { _base = value; }
+        }
 #endif
-        public static string Resources { get { return $@"{Base}/Resources"; } }
+        public static string Resources { get { return $@"{Base}/resources"; } }
+
+        public static class VBE
+        {
+            public static string Forms { get { return $@"{Resources}/forms"; } }
+            public static string Modules { get { return $@"{Resources}/modules"; } }
+            public static string Classes { get { return $@"{Resources}/classes"; } }
+            public static string CustomUI { get { return $@"{Resources}/customUI"; } }
+        }
     }
 }
 namespace VBA.Executable
@@ -51,4 +93,5 @@ namespace VBA.Executable
 #endif
         public static string Resources { get { return $@"{Base}/Resources"; } }
     }
+
 }
