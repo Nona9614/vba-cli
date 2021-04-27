@@ -11,7 +11,7 @@ namespace VBA.Handlers
     {
         private static string FileName
         {
-            get { return $@"{Project.Paths.Resources}/help.json"; }
+            get { return $@"{Executable.Paths.Resources}/help.json"; }
         }
 
         private static HelpContentModel _model;
