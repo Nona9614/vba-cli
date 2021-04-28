@@ -35,12 +35,12 @@ namespace VBA.Switches
                         case 1:
                             // CustomUI file name was not set, default will be used
                             // Excel file name was not set, will search for <project>.xlsm
-                            customUI = @$"{Project.Files.CustomUI}";
-                            excel = Project.Paths.CheckForDefaultPath(parameters[1]);
+                            customUI = @$"{Project.Files.VBE.CustomUI.Default}";
+                            excel = Project.Paths.CheckForDefaultPath("project");
                             break;
                         case 2:
                             // CustomUI file name was not set, default will be used
-                            customUI = @$"{Project.Files.CustomUI}";
+                            customUI = @$"{Project.Files.VBE.CustomUI.Default}";
                             excel = Project.Paths.CheckForDefaultPath(parameters[1]);
                             break;
                         case 3:

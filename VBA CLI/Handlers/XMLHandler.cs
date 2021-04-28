@@ -11,7 +11,7 @@ namespace VBA.Handlers
         public static bool GenerateDefaultCustomUI()
         {
             // Validate overriding
-            if (File.Exists(Project.Files.CustomUI))
+            if (File.Exists(Project.Files.VBE.CustomUI.Default))
             {
                 Console.Write("There is a customUI file already created. \nWould you like to override it? (y/n) --> ");
                 if (!(Regex.Match(Console.ReadLine().Trim(), "^y*").Length > 0))
@@ -21,15 +21,15 @@ namespace VBA.Handlers
                 }
                 else
                 {
-                    File.Delete(Project.Files.CustomUI);
-                    File.Copy(Executable.Files.CustomUI, Project.Files.CustomUI);
+                    File.Delete(Project.Files.VBE.CustomUI.Default);
+                    File.Copy(Executable.Files.VBE.CustomUI.Default, Project.Files.VBE.CustomUI.Default);
                     Console.WriteLine("CustomUI file created properly");
                 }
             }
             else
             {
                 Directory.CreateDirectory(Project.Paths.Resources);
-                File.Copy(Executable.Files.CustomUI, Project.Files.CustomUI);
+                File.Copy(Executable.Files.VBE.CustomUI.Default, Project.Files.VBE.CustomUI.Default);
                 Console.WriteLine("CustomUI file created successfully");
             }
             return true;

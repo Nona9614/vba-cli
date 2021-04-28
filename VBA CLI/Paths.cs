@@ -75,10 +75,10 @@ namespace VBA.Project
 
         public static class VBE
         {
-            public static string Forms { get { return $@"{Resources}/forms"; } }
-            public static string Modules { get { return $@"{Resources}/modules"; } }
-            public static string Classes { get { return $@"{Resources}/classes"; } }
-            public static string CustomUI { get { return $@"{Resources}/customUI"; } }
+            public static string Forms { get { return $@"{Resources}/VBE/forms"; } }
+            public static string Modules { get { return $@"{Resources}/VBE/modules"; } }
+            public static string Classes { get { return $@"{Resources}/VBE/classes"; } }
+            public static string CustomUI { get { return $@"{Resources}/VBE/customUI"; } }
         }
     }
 }
