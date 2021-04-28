@@ -1,11 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace VBA.Project
 {
     namespace Files
     {
+        public static class Verify
+        {
+            // Important to notice this modifies the _base route during all the code
+            public static void Name(ref string name, ref string _base)
+            {
+                bool isValidName = Regex.Match(name, @"^[\w\-\(\)\[\]\/\\]+$").Length > 0;
+                bool isValidRoute = Directory.Exists(_base);
+                if (isValidName && isValidRoute)
+                {
+                    _base = Regex.Replace($"{_base}\\{name}", "[/]", "\\");
+                    name = $"{_base}".Split("\\")[^1];
+                }
+                else
+                {
+                    if (!isValidName) Console.WriteLine($"Name '{name}' has invalid format");
+                    if (!isValidRoute) Console.WriteLine($"Route'{_base}' doesn't exists");
+                    name = null;
+                    _base = null;
+                }
+            }
+        }
         namespace VBE
         {
             public static class Classes
