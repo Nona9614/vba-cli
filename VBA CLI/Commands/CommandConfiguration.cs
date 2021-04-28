@@ -26,7 +26,14 @@ namespace VBA.Commands
                 return false;
             }
             bool result = false;
-            ConfigurationFileHandler.CheckForFileExistence();
+            if (!ConfigurationFileHandler.CheckForFileExistence())
+            {
+                return false;
+            }
+            else
+            {
+                ConfigurationFileHandler.SaveChanges();
+            };
             switch (parameters[0])
             {
                 // Versionage as 'a.b.c.d'
