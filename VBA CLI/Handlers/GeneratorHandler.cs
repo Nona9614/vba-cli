@@ -40,10 +40,10 @@ namespace VBA.Handlers
         public static bool CreateExcelFile(string name, string _base, string customUI)
         {
             VerifyProjectName(ref name, ref _base);
-            VerifyProjectCustomUI(ref customUI);
             if (name != null && _base != null)
             {
                 Paths.Base = _base;
+                VerifyProjectCustomUI(ref customUI);
                 Directory.CreateDirectory(Paths.Base);
                 if (!Excel.CreateExcelFile($"{Paths.Base}\\{name}", customUI)) return false;
                 return true;
@@ -56,10 +56,10 @@ namespace VBA.Handlers
         public static bool CreateProject(string name, string _base, string customUI)
         {
             VerifyProjectName(ref name, ref _base);
-            VerifyProjectCustomUI(ref customUI);
             if (name != null && _base != null)
             {
                 Paths.Base = _base;
+                VerifyProjectCustomUI(ref customUI);
                 Directory.CreateDirectory(Paths.Base);
                 Structure.CreateFolders();
                 Structure.CreateDefaultFiles();
