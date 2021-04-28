@@ -24,9 +24,9 @@ namespace VBA
             {
                 Console.Write("There is an excel file already created with this name and path. \nWould you like to override? (y/n) --> ");
                 ConsoleKeyInfo key;
-                int x = 0x1B;//0;
+                int x = 0x0;
                 int pos = Console.CursorLeft;
-                bool canceled = false;//true;
+                bool canceled = true;
                 while (x != 0x1B)
                 {
                     key = Console.ReadKey();
