@@ -40,7 +40,7 @@ namespace VBA.Executable
             }
             public static class CustomUI
             {
-                public static string Rels { get { return $@"{Paths.Resources}/VBE/CustomUI/customUI.xml"; } }
+                public static string Rels { get { return $@"{Paths.Resources}/VBE/CustomUI/.rels"; } }
                 public static string Default { get { return $@"{Paths.Resources}/VBE/CustomUI/customUI.xml"; } }
             }
             public static class Modules
