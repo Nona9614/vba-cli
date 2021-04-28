@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using Newtonsoft;
 using VBA.Models;
+using System.Text.RegularExpressions;
 
 namespace VBA.Handlers
 {
@@ -36,21 +37,47 @@ namespace VBA.Handlers
             Console.WriteLine("Saving changes to configuration file");
         }
 
-        public static void CheckForFileExistence()
+        public static bool CheckForFileExistence()
         {
             if (!File.Exists(FileName))
             {
-                Console.WriteLine("Configuration file not found, creating new one...");
-                CreatingConfigurationFile();
-                Console.WriteLine("Configuration file created succesfully");
+                string project = null;
+                int x = 0;
+                ConsoleKeyInfo key;
+                Console.WriteLine("\nConfiguration file not found, type the project name then press 'enter' to finish or 'esc' to cancel.");
+                Console.Write("Project name --> ");
+                int pos = Console.CursorLeft;
+                while (!(x == 0xa || x == 0xd))
+                {
+                    key = Console.ReadKey();
+                    x = key.KeyChar;
+                    project += key.KeyChar;
+                    if (x == 0x8) {
+                        if (pos < Console.CursorLeft)
+                        {
+                            Console.Write(" \b");
+                        }
+                        else
+                        {
+                            Console.Write(" ");
+                            Console.SetCursorPosition(pos, Console.CursorTop);
+                        }
+                    };
+                    if (x == 0x1b) return false;
+                }
+                CreatingConfigurationFile(project);
             }
+            return true;
         }
 
-        public static void CreatingConfigurationFile()
+        public static bool CreatingConfigurationFile(string project)
         {
             File.WriteAllText(FileName, "{}");
             Model.Version = "0.0.0.0";
+            if (!SetProjectName(project)) return false;
+            Console.WriteLine("Configuration file created succesfully");
             SaveChanges();
+            return true;
         }
 
         public static int[] VersionageStringToArrayInt(string value)
@@ -116,6 +143,20 @@ namespace VBA.Handlers
 
             Console.WriteLine($"Setting project version {Model.Version}");
             return true;
+        }
+
+        public static bool SetProjectName(string name)
+        {
+            if (Regex.Match(name, @"^[\w\-\(\)\[\]]+$").Length > 0)
+            {
+                Model.ProjectName = name;
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"{name} is not a valid name");
+                return false;
+            }
         }
 
     }
