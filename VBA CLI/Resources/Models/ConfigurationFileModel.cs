@@ -4,7 +4,7 @@ using System.Text;
 
 namespace VBA.Models
 {
-    class ConfigurationFileModel
+    public class ConfigurationFileModel
     {
         public string Version { get; set; }
         public string ProjectName { get; set; }

@@ -17,7 +17,7 @@ namespace VBA.Handlers
 
         private static ConfigurationFileModel _model;
 
-        private static ConfigurationFileModel Model
+        public static ConfigurationFileModel Model
         {
             get
             {
