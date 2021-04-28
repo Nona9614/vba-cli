@@ -13,19 +13,52 @@ namespace VBA
     public static class ExcelHandler
     {
         //  Returns true if the creation succeed, if not returns false
-        public static bool CreateExcelFile(string name)
+        public static bool CreateExcelFile(string name, string customUI = null)
         {
             // Adds macro enabled extension
             name = $"{name}.xlsm";
-
+            string _route = Directory.GetParent(name).FullName;
+            string _name = Directory.GetParent(name).Name;
             // Validate overriding
             if (File.Exists(name))
             {
-                Console.Write("There is a file already created with this name and path. \nWould you like to override? (y/n) --> ");
-                if (!(Regex.Match(Console.ReadLine().Trim(), "^y*").Length > 0))
+                Console.Write("There is an excel file already created with this name and path. \nWould you like to override? (y/n) --> ");
+                ConsoleKeyInfo key;
+                int x = 0x1B;//0;
+                int pos = Console.CursorLeft;
+                bool canceled = false;//true;
+                while (x != 0x1B)
                 {
-                    Console.WriteLine("Proccess Canceled");
+                    key = Console.ReadKey();
+                    x = key.KeyChar;
+                    if (!(x == 0x59 || x == 0x79 || x == 0x4E || x == 0x6E))
+                    {
+                        if (x != 0x1B) 
+                        {
+                            if (x != 0x8) { Console.Write("\b \b"); } else { Console.Write("  "); }
+                            Console.CursorLeft = pos;
+                        }
+                        else
+                        {
+                            Console.Write("xn");
+                        }
+                    }
+                    else
+                    {
+                        canceled = x == 0x4E || x == 0x6E;
+                        break;
+                    }
+                }
+
+                if (canceled)
+                {
+                    Console.WriteLine("\nProccess Canceled");
                     return false;
+                }
+                else
+                {
+                    File.Delete(name);
+                    Console.WriteLine("\nOverriding file...");
                 }
             }
 
@@ -36,35 +69,39 @@ namespace VBA
                 xlApp = new Excel.Application();
                 version = xlApp.Version;
                 xlApp.Quit();
-                Marshal.ReleaseComObject(xlApp);
+                while (Marshal.ReleaseComObject(xlApp) != 0) { }
             }
 
             DisableTrustCenterSecurity();
 
             xlApp = new Excel.Application();
-            Excel.Workbook xlWbk = xlApp.Workbooks.Add();
+            Excel.Workbooks xlWbks = xlApp.Workbooks;
+            Excel.Workbook xlWbk = xlWbks.Add();
             Excel.XlFileFormat xlFileFormat = Excel.XlFileFormat.xlOpenXMLWorkbookMacroEnabled;
-            xlApp.DisplayAlerts = false;
 
             //  Creating file
-            AddCallbacksModule(xlWbk);
+            AddModule(xlWbk, Executable.Files.VBE.Modules.Callbacks);
 
+            name = Regex.Replace(name, "[/]", "\\");
             xlWbk.SaveAs(name, xlFileFormat);
-            xlApp.DisplayAlerts = true;
-            xlWbk.Close();
-            xlApp.Quit();
-            Marshal.ReleaseComObject(xlApp);
-            Marshal.ReleaseComObject(xlWbk);
+            xlWbk.Close(true);
+            while (Marshal.ReleaseComObject(xlWbk) != 0) { }
 
-            AddCustomUI(name, Executable.Files.CustomUI);
+            xlWbks.Close();
+            while (Marshal.ReleaseComObject(xlWbks) != 0) { }
+
+            xlApp.Quit();
+            while (Marshal.ReleaseComObject(xlApp) != 0) { }
+
+            AddCustomUI(name, customUI);
 
             EnableTrustCenterSecurity();
 
-            Console.WriteLine(@$"Created successfully file: '{name}'");
+            Console.WriteLine(@$"File successfully created: '{name}'");
 
             return true;
         }
-        public static bool AddCustomUI(string excelFileName, string customUIName)
+        public static bool AddCustomUI(string excelFileName, string customUIName = null)
         {
             if (!IsXMLFile(customUIName) || !IsExcelFile(excelFileName))
             {
@@ -76,8 +113,8 @@ namespace VBA
             ZipArchiveEntry rels = archive.GetEntry("_rels/.rels");
             ZipArchiveEntry customUI = archive.GetEntry("customUI/customUI.xml") ?? archive.CreateEntry("customUI/customUI.xml");
 
-            byte[] relsBytes = File.ReadAllBytes(@$"{Executable.Files.Rels}");
-            byte[] customUIBytes = File.ReadAllBytes(customUIName ?? @$"{Executable.Files.CustomUI}");
+            byte[] relsBytes = File.ReadAllBytes(@$"{Executable.Files.VBE.CustomUI.Rels}");
+            byte[] customUIBytes = File.ReadAllBytes(customUIName ?? @$"{Executable.Files.VBE.CustomUI.Default}");
 
             Stream _rels = rels.Open();
             Stream _customUI = customUI.Open();
@@ -126,20 +163,25 @@ namespace VBA
                 return false; ;
             }
         }
-        private static void AddCallbacksModule(Excel.Workbook xlWbk)
+        private static void AddModule(Excel.Workbook xlWbk, string source)
         {
 
             xlWbk.Application.AutomationSecurity = MsoAutomationSecurity.msoAutomationSecurityLow;
-
-            VBE.vbext_ComponentType type = VBE.vbext_ComponentType.vbext_ct_StdModule;
-            VBE.VBComponent defaultModule = xlWbk.VBProject.VBComponents.Add(type);
-            VBE.CodeModule code = defaultModule.CodeModule;
+            Excel.Application xlApp = xlWbk.Application;
+            VBE.VBProject vbProject = xlWbk.VBProject;
+            VBE.vbext_ComponentType vbComponentType = VBE.vbext_ComponentType.vbext_ct_StdModule;
+            VBE.VBComponent vbModule = vbProject.VBComponents.Add(vbComponentType);
+            VBE.CodeModule vbCode = vbModule.CodeModule;
 
             // Adds code to the module
-            code.Name = "Callbacks";
-            code.InsertLines(1, File.ReadAllText($"{Executable.Files.CallbacksModule}"));
+            vbCode.Name = Path.GetFileName(source).Split(".")[0];
+            vbCode.InsertLines(1, File.ReadAllText(source));
+            xlApp.AutomationSecurity = MsoAutomationSecurity.msoAutomationSecurityByUI;
 
-            xlWbk.Application.AutomationSecurity = MsoAutomationSecurity.msoAutomationSecurityByUI;
+            // Clean up
+            while (Marshal.ReleaseComObject(vbProject) != 0) { }
+            while (Marshal.ReleaseComObject(vbModule) != 0) { }
+            while (Marshal.ReleaseComObject(vbCode) != 0) { }
         }
         private static void DisableTrustCenterSecurity()
         {
@@ -156,11 +198,6 @@ namespace VBA
             RegistryKey VBOMKey = Registry.CurrentUser.OpenSubKey(subkey, true);
             VBOMKey.DeleteValue(key);
             VBOMKey.Close();
-        }
-
-        private static bool IsValidFileName(string name)
-        {
-            return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
         }
 
         private static string version = null;
