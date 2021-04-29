@@ -1,14 +1,14 @@
 VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
-END
-Attribute VB_Name = "IInterface"
+End
+Attribute VB_Name = "Class"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
-private mValue as String;
+Private mValue As String
 
 Public Function Init(Value as String)
   mValue = Value
