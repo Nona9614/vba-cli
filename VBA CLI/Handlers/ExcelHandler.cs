@@ -2,23 +2,34 @@
 using Microsoft.Win32;
 using System;
 using System.IO;
-using System.IO.Compression;
 using System.Runtime.InteropServices;
 using VBE = Microsoft.Vbe.Interop;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using CustomUI = VBA.Handlers.CustomUIHandler;
 
-namespace VBA
+namespace VBA.Handlers
 {
     public static class ExcelHandler
     {
+        private static readonly List<string> xlMacroEnabledExtensions = new List<string> { "xlsm", "xltm", "xlsb", "xla", "xlam", "xll" };
+        public static bool IsExcelFile(string name)
+        {
+            return Regex.Match(Path.GetExtension(name), @".*\.[xX][lL]*").Length > 0;
+        }
+        public static bool IsMacroEnabledExcelFile(string name)
+        {
+            return xlMacroEnabledExtensions.Contains(Path.GetExtension(name));
+        }
+        // If has not valid macro-enabled extensions adds one
+        public static void AddMacroEnabledExtension(ref string name)
+        {
+            if (!IsMacroEnabledExcelFile(name)) name += ".xlsm";
+        }
         //  Returns true if the creation succeed, if not returns false
         public static bool CreateExcelFile(string name, string customUI = null)
         {
-            // Adds macro enabled extension
-            name = $"{name}.xlsm";
-            string _route = Directory.GetParent(name).FullName;
-            string _name = Directory.GetParent(name).Name;
             // Validate overriding
             if (File.Exists(name))
             {
@@ -93,75 +104,13 @@ namespace VBA
             xlApp.Quit();
             while (Marshal.ReleaseComObject(xlApp) != 0) { }
 
-            AddCustomUI(name, customUI);
+            bool added = CustomUI.AddCustomUI(name, customUI);
 
             EnableTrustCenterSecurity();
 
             Console.WriteLine(@$"File successfully created: '{name}'");
 
-            return true;
-        }
-        public static bool AddCustomUI(string excelFileName, string customUIName = null)
-        {
-            if (!IsXMLFile(customUIName) || !IsExcelFile(excelFileName))
-            {
-                return false;
-            }
-
-            FileStream _stream = File.Open(excelFileName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-            ZipArchive archive = new ZipArchive(_stream, ZipArchiveMode.Update);
-            ZipArchiveEntry rels = archive.GetEntry("_rels/.rels");
-            ZipArchiveEntry customUI = archive.GetEntry("customUI/customUI.xml") ?? archive.CreateEntry("customUI/customUI.xml");
-
-            byte[] relsBytes = File.ReadAllBytes(@$"{Executable.Files.VBE.CustomUI.Rels}");
-            byte[] customUIBytes = File.ReadAllBytes(customUIName ?? @$"{Executable.Files.VBE.CustomUI.Default}");
-
-            Stream _rels = rels.Open();
-            Stream _customUI = customUI.Open();
-
-            _rels.Write(relsBytes, 0, relsBytes.Length);
-            _rels.Dispose();
-            _customUI.Write(customUIBytes, 0, customUIBytes.Length);
-            _customUI.Dispose();
-
-            archive.Dispose();
-            Console.WriteLine("Custom UI added successfully");
-
-            return true;
-        }
-        private static bool IsExcelFile(string name)
-        {
-            if (!File.Exists(name))
-            {
-                Console.WriteLine($"The excel file '{name}' was not found");
-                return false;
-            }
-            if (Regex.Match(Path.GetExtension(name), @".*\.[xX][lL]*").Length > 0)
-            {
-                return true;
-            }
-            else 
-            {
-                Console.WriteLine($"This is not an excel file '{name}'");
-                return false; ;
-            }
-        }
-        private static bool IsXMLFile(string name)
-        {
-            if (!File.Exists(name))
-            {
-                Console.WriteLine($"The xml file '{name}' was not found");
-                return false;
-            }
-            if (Regex.Match(Path.GetExtension(name), @".*\.[xX][mM][lL]").Length > 0)
-            {
-                return true;
-            }
-            else
-            {
-                Console.WriteLine($"This is not an xml file '{name}'");
-                return false; ;
-            }
+            return added;
         }
         private static void AddModule(Excel.Workbook xlWbk, string source)
         {
