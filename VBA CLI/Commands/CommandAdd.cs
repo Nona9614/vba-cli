@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Excel = VBA.ExcelHandler;
+using VBA.Handlers;
+using VBA.Project;
 
 namespace VBA.Switches
 {
@@ -27,34 +28,48 @@ namespace VBA.Switches
             switch (parameters[0])
             {
                 case "customUI":
-                    string customUI = null;
                     string excel = null;
-                    bool fileNotFound = false;
+                    string excelPath = null;
+                    string customUI = null;
+                    string customUIPath = null;
                     switch (parameters.Count)
                     {
+                        // If not name is asigned, excel will try to create 'project.xlsm' file
                         case 1:
-                            // CustomUI file name was not set, default will be used
-                            // Excel file name was not set, will search for <project>.xlsm
-                            customUI = @$"{Project.Files.VBE.CustomUI.Default}";
-                            excel = Project.Paths.CheckForDefaultPath("project");
+                            if (ConfigurationFileHandler.CheckForFileExistence()) excel = ConfigurationFileHandler.Model.ProjectName;
+                            excelPath = Paths.Base;
+                            customUI = "customUI.xml";
+                            customUIPath = Paths.VBE.CustomUI;
                             break;
                         case 2:
-                            // CustomUI file name was not set, default will be used
-                            customUI = @$"{Project.Files.VBE.CustomUI.Default}";
-                            excel = Project.Paths.CheckForDefaultPath(parameters[1]);
+                            excel = parameters[1];
+                            excelPath = Paths.Base;
+                            customUI = "customUI.xml";
+                            customUIPath = Paths.VBE.CustomUI;
                             break;
                         case 3:
-                            customUI = Project.Paths.CheckForDefaultPath(parameters[2], $@"{Project.Paths.Resources}");
-                            excel = Project.Paths.CheckForDefaultPath(parameters[1]);
+                            excel = parameters[1];
+                            excelPath = parameters[2];
+                            customUI = "customUI.xml";
+                            customUIPath = Paths.VBE.CustomUI;
+                            break;
+                        case 4:
+                            excel = parameters[1];
+                            excelPath = parameters[2];
+                            customUI = parameters[3];
+                            customUIPath = Paths.VBE.CustomUI;
+                            break;
+                        case 5:
+                            excel = parameters[1];
+                            excelPath = parameters[2];
+                            customUI = parameters[3];
+                            customUIPath = parameters[4];
                             break;
                         default:
                             Console.WriteLine("Not recognized parameters");
                             break;
                     }
-                    if (!fileNotFound)
-                    {
-                        result = Excel.AddCustomUI(excel, customUI);
-                    }
+                    result = AdderHandler.AddCustomUI(excel, excelPath, customUI, customUIPath);
                     break;
                 default:
                     Console.WriteLine($"Option '{parameters[0]}' is not valid");
