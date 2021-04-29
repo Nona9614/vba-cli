@@ -10,15 +10,19 @@ namespace VBA.Project
     {
         public static class Verify
         {
-            // Important to notice this modifies the _base route during all the code
             public static void Name(ref string name, ref string _base)
             {
-                bool isValidName = Regex.Match(name, @"^[\w\-\(\)\[\]\/\\]+$").Length > 0;
-                bool isValidRoute = Directory.Exists(_base);
+                bool isValidName = name != null && Regex.Match(name, @"^[:*<>|]+$").Length <= 0;
+                bool isValidRoute = _base != null && Directory.Exists(_base);
                 if (isValidName && isValidRoute)
                 {
+                    // Combine into one string the name, such case contain a prereset route and give format
+                    // Ex: "name = subroute/name" --> _base = D:\base\subroute\name
                     _base = Regex.Replace($"{_base}\\{name}", "[/]", "\\");
+                    // Then recover only the name from it
                     name = $"{_base}".Split("\\")[^1];
+                    // Then remove the name from the base
+                    _base = Directory.GetParent(_base).FullName;
                 }
                 else
                 {
