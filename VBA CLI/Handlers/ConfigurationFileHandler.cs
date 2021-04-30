@@ -17,7 +17,7 @@ namespace VBA.Handlers
 
         private static ConfigurationFileModel _model;
 
-        public static ConfigurationFileModel Model
+        private static ConfigurationFileModel Model
         {
             get
             {
@@ -51,7 +51,7 @@ namespace VBA.Handlers
                 {
                     key = Console.ReadKey();
                     x = key.KeyChar;
-                    project += key.KeyChar;
+                    if (char.IsLetterOrDigit(key.KeyChar) || key.KeyChar == 0x28 || key.KeyChar == 0x29 || key.KeyChar == 0x2D || key.KeyChar >= 0x5F && key.KeyChar <= 0x5B) project += key.KeyChar;
                     if (x == 0x8) {
                         if (pos < Console.CursorLeft)
                         {
@@ -60,21 +60,26 @@ namespace VBA.Handlers
                         else
                         {
                             Console.Write(" ");
-                            Console.SetCursorPosition(pos, Console.CursorTop);
+                            Console.CursorLeft = pos;
                         }
                     };
-                    if (x == 0x1b) return false;
+                    if (x == 0x1b) 
+                    {
+                        Console.Write("Canceled\n");
+                        return false;
+                    }
                 }
-                CreatingConfigurationFile(project);
+                if(!CreateConfigurationFile(project)) return false;
             }
             return true;
         }
 
-        public static bool CreatingConfigurationFile(string project)
+        public static bool CreateConfigurationFile(string project)
         {
             File.WriteAllText(FileName, "{}");
             Model.Version = "0.0.0.0";
             if (!SetProjectName(project)) return false;
+            if (!SetCustomUIDefaultName("customUI")) return false;
             Console.WriteLine("Configuration file created succesfully");
             SaveChanges();
             return true;
@@ -144,20 +149,54 @@ namespace VBA.Handlers
             Console.WriteLine($"Setting project version {Model.Version}");
             return true;
         }
-
+        public static bool IsValidProjectName(string name)
+        {
+            return Regex.Match(name, @"^[\w-]+$").Length > 0;
+        }
         public static bool SetProjectName(string name)
         {
-            if (Regex.Match(name, @"^[\w\-\(\)\[\]]+$").Length > 0)
+            if (IsValidProjectName(name))
             {
                 Model.ProjectName = name;
                 return true;
             }
             else
             {
-                Console.WriteLine($"{name} is not a valid name");
+                Console.WriteLine($"'{name}' is not a valid project name");
                 return false;
             }
         }
+        public static string GetProjectName()
+        {
+            if (!IsValidProjectName(Model.ProjectName))
+            {
+                Console.WriteLine($"'{Model.ProjectName}' is not a valid project name");
+                return null;
+            }
+            else return Model.ProjectName;
+        }
+        public static bool SetCustomUIDefaultName(string name)
+        {
 
+            if (CustomUIHandler.IsXMLFile(name) && Project.Files.Verify.IsValidFileName(name))
+            {
+                Model.CustomUIDefaultName = name;
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"'{name}' is not a customUI name");
+                return false;
+            }
+        }
+        public static string GetCustomUIDefaultName()
+        {
+            if (CustomUIHandler.IsXMLFile(Model.CustomUIDefaultName) && Project.Files.Verify.IsValidFileName(Model.CustomUIDefaultName)) return Model.CustomUIDefaultName;
+            else
+            {
+                Console.WriteLine($"'{Model.CustomUIDefaultName}' is not a customUI name");
+                return null;
+            }
+        }
     }
 }
