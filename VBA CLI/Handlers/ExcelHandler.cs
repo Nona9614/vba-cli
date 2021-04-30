@@ -104,11 +104,11 @@ namespace VBA.Handlers
             xlApp.Quit();
             while (Marshal.ReleaseComObject(xlApp) != 0) { }
 
+            Console.WriteLine(@$"Excel file successfully created: '{name}'");
+
             bool added = CustomUI.AddCustomUI(name, customUI);
 
             EnableTrustCenterSecurity();
-
-            Console.WriteLine(@$"File successfully created: '{name}'");
 
             return added;
         }

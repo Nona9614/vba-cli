@@ -21,6 +21,7 @@ namespace VBA.Handlers
         public static bool AddCustomUI(string excel, string customUI)
         {
             if (!IsXMLFile(customUI)) return false;
+            string sTmp = "";
 
             FileStream _stream = File.Open(excel, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
             ZipArchive archive = new ZipArchive(_stream, ZipArchiveMode.Update);
@@ -39,7 +40,7 @@ namespace VBA.Handlers
             _customUI.Dispose();
 
             archive.Dispose();
-            Console.WriteLine("Custom UI added successfully");
+            Console.WriteLine(@$"Custom UI added successfully: '{customUI}'");
 
             return true;
         }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using VBA.Handlers;
 using VBA.Project;
 
-namespace VBA.Switches
+namespace VBA.Commands
 {
     class CommandAdd: ICommand, IDisposable
     {
@@ -28,36 +28,41 @@ namespace VBA.Switches
             switch (parameters[0])
             {
                 case "customUI":
-                    string excel = null;
-                    string excelPath = null;
-                    string customUI = null;
-                    string customUIPath = null;
+                    string excel;
+                    string excelPath;
+                    string customUI;
+                    string customUIPath;
+                    if (SwitchesHandler.UsesExecutablePaths(ref parameters) == 0)
+                    {
+                        // If not name is asigned, excel will try to create 'project.xlsm' file
+                        excel = "project.xslm";
+                        customUI = "customUI.xml";
+                        excelPath = Executable.Paths.Base;
+                        customUIPath = Executable.Paths.VBE.CustomUI;
+                    }
+                    else
+                    {
+                        if (!ConfigurationFileHandler.CheckForFileExistence()) return false;
+                        excel = ConfigurationFileHandler.GetProjectName();
+                        excelPath = Paths.Base;
+                        if (parameters.Count > 3) ConfigurationFileHandler.SetCustomUIDefaultName(parameters[3]);
+                        customUI = ConfigurationFileHandler.GetCustomUIDefaultName();
+                        customUIPath = Paths.VBE.CustomUI;
+                    }
                     switch (parameters.Count)
                     {
                         // If not name is asigned, excel will try to create 'project.xlsm' file
-                        case 1:
-                            if (ConfigurationFileHandler.CheckForFileExistence()) excel = ConfigurationFileHandler.Model.ProjectName;
-                            excelPath = Paths.Base;
-                            customUI = "customUI.xml";
-                            customUIPath = Paths.VBE.CustomUI;
-                            break;
                         case 2:
                             excel = parameters[1];
-                            excelPath = Paths.Base;
-                            customUI = "customUI.xml";
-                            customUIPath = Paths.VBE.CustomUI;
                             break;
                         case 3:
                             excel = parameters[1];
                             excelPath = parameters[2];
-                            customUI = "customUI.xml";
-                            customUIPath = Paths.VBE.CustomUI;
                             break;
                         case 4:
                             excel = parameters[1];
                             excelPath = parameters[2];
                             customUI = parameters[3];
-                            customUIPath = Paths.VBE.CustomUI;
                             break;
                         case 5:
                             excel = parameters[1];

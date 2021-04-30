@@ -31,34 +31,10 @@ namespace VBA.Project
         }
     }
     public static class Paths
-    {        
-        // If it is a valid file name with no path, a default will be used
-        public static string CheckForDefaultPath(string name, string path)
-        {
-            if (File.Exists(name))
-            {
-                return name;
-            }
-            else
-            {
-                return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 ? $@"{path}\{name}" : null;
-            }
-        }
-        // This overload uses the project path as the preset
-        public static string CheckForDefaultPath(string name)
-        {
-            if (File.Exists(name))
-            {
-                return name;
-            }
-            else
-            {
-                return name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 ? $@"{Base}\{name}" : null;
-            }
-        }
-
+    {
 #if (DEBUG)
-        private static string _base = @"D:\Documents\Personal\repos\apps\vba-cli\VBA CLI";
+        private static readonly string _dfbase = @"D:\Documents\Personal\repos\apps\vba-cli\VBA CLI";
+        private static string _base = _dfbase;
 #else
         private static string _base = Directory.GetCurrentDirectory();
 #endif
@@ -67,14 +43,28 @@ namespace VBA.Project
             get { return _base; }
             set { _base = value; }
         }
+#if (DEBUG)
+        public static string _vbe = "\\VBE";
+        public static string Resources {
+            get {
+                if (string.Equals(_base, _dfbase, StringComparison.OrdinalIgnoreCase))
+                {
+                    _vbe = "\\VBE";
+                    return $@"{_base}\Resources";
+                }
+                else return $@"{_base}\resources";
+            } 
+        }
+#else
+        public static string _vbe = "";
         public static string Resources { get { return $@"{Base}\resources"; } }
-
+#endif
         public static class VBE
         {
-            public static string Forms { get { return $@"{Resources}\forms"; } }
-            public static string Modules { get { return $@"{Resources}\modules"; } }
-            public static string Classes { get { return $@"{Resources}\classes"; } }
-            public static string CustomUI { get { return $@"{Resources}\customUI"; } }
+            public static string Forms { get { return $@"{Resources}{_vbe}\forms"; } }
+            public static string Modules { get { return $@"{Resources}{_vbe}\modules"; } }
+            public static string Classes { get { return $@"{Resources}{_vbe}\classes"; } }
+            public static string CustomUI { get { return $@"{Resources}{_vbe}\customUI"; } }
         }
     }
 }
@@ -86,7 +76,7 @@ namespace VBA.Executable
                 string _name = Assembly.GetExecutingAssembly().GetName().Name;
                 string _codebase = Regex.Replace(Assembly.GetExecutingAssembly().CodeBase, "[/]", "\\");
 #if DEBUG
-                string _bin = @"\bin\Release\netcoreapp3.1\";
+                string _bin = @"\bin\Debug\netcoreapp3.1\";
 #else
                 // If the program is installed uses the exe path as base
                 string _bin = @"\bin\Release\netcoreapp3.1\";
@@ -95,6 +85,14 @@ namespace VBA.Executable
                 return _codebase.Replace(_uri, "").Replace(@$"{_bin}{_name}.dll", ""); } 
         }
         public static string Resources { get { return $@"{Base}\Resources"; } }
+        public static class VBE
+        {
+            public static string Forms { get { return $@"{Resources}\VBE\forms"; } }
+            public static string Modules { get { return $@"{Resources}\VBE\modules"; } }
+            public static string Classes { get { return $@"{Resources}\VBE\classes"; } }
+            public static string CustomUI { get { return $@"{Resources}\VBE\customUI"; } }
+        }
+
     }
 
 }

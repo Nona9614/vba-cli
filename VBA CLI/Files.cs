@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace VBA.Project
@@ -10,29 +8,45 @@ namespace VBA.Project
     {
         public static class Verify
         {
-            public static void Name(ref string name, ref string _base)
+            // Checks for invalid chars
+            public static bool IsValidFileName(string name) => Regex.Match(name, @"^[^:*<>|?]+$").Success;
+            public static bool IsValidFolderName(string name) => Regex.Match(name, @"^[a-zA-Z]:(\\|\/)[^:*<>|?]+$").Success;
+            public static bool Name(ref string name, ref string _base)
             {
-                bool isValidName = name != null && Regex.Match(name, @"^[:*<>|]+$").Length <= 0;
-                bool isValidRoute = _base != null && Directory.Exists(_base);
-                if (isValidName && isValidRoute)
+                bool isNameInvalid = name == null;
+                bool isBaseInvalid = _base == null;
+                if ((isNameInvalid || isBaseInvalid) && !Directory.Exists(_base))
                 {
-                    // Combine into one string the name, such case contain a prereset route and give format
-                    // Ex: "name = subroute/name" --> _base = D:\base\subroute\name
-                    _base = Regex.Replace($"{_base}\\{name}", "[/]", "\\");
-                    // Then recover only the name from it
-                    name = $"{_base}".Split("\\")[^1];
-                    // Then remove the name from the base
-                    _base = Directory.GetParent(_base).FullName;
-                }
-                else
-                {
-                    if (!isValidName) Console.WriteLine($"Name '{name}' has invalid format");
-                    if (!isValidRoute) Console.WriteLine($"Route'{_base}' doesn't exists");
+                    if (isNameInvalid) Console.WriteLine($"Name has null reference");
+                    if (isBaseInvalid) Console.WriteLine($"Base has null reference");
+                    else Console.WriteLine($"Directory '{_base}' doesn't exist");
                     name = null;
                     _base = null;
+                    return false;
                 }
+                _base = Directory.GetParent(_base + "\\remove").FullName;
+                MatchCollection matches = Regex.Matches(name, @"(\\|\/)");
+                if (matches.Count > 1)
+                {
+                    int _index = matches[^1].Index;
+                    string _subbase = name.Remove(_index);
+                    name = name.Remove(0, _subbase.Length + 1);
+                    _base += "\\" + _subbase;
+                }
+                isNameInvalid = !IsValidFileName(name);
+                isBaseInvalid = !IsValidFolderName(_base);
+                if (isNameInvalid || isBaseInvalid)
+                {
+                    if (isNameInvalid) Console.WriteLine($"Name '{name}' has invalid format");
+                    if (isBaseInvalid) Console.WriteLine($"Directory '{_base}' has invalid format");
+                    name = null;
+                    _base = null;
+                    return false;
+                }
+                return true;
             }
         }
+
         namespace VBE
         {
             public static class Classes

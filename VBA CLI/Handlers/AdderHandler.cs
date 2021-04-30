@@ -10,19 +10,12 @@ namespace VBA.Handlers
     {
         public static bool AddCustomUI(string excel, string excelPath, string customUI, string customUIPath)
         {
-            if(!Excel.IsExcelFile(excel)) Excel.AddMacroEnabledExtension(ref excel);
-            Verify.Name(ref excel, ref excelPath);
-            CustomUI.AddXmlExtension(ref customUI);
-            Verify.Name(ref customUI, ref customUIPath);
-            if (excel != null && excelPath != null && customUI != null && customUIPath != null)
-            {
-                if (!CustomUI.AddCustomUI($"{excelPath}\\{excel}", $"{customUIPath}\\{customUI}")) return false;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            if (excel != null && !Excel.IsExcelFile(excel)) Excel.AddMacroEnabledExtension(ref excel);
+            if (!Verify.Name(ref excel, ref excelPath)) return false;
+            if (customUI != null) CustomUI.AddXmlExtension(ref customUI);
+            if (!Verify.Name(ref customUI, ref customUIPath)) return false;
+            if (!CustomUI.AddCustomUI($"{excelPath}\\{excel}", $"{customUIPath}\\{customUI}")) return false;
+            return true;
         }
     }
 }

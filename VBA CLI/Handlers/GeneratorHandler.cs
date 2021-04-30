@@ -1,77 +1,43 @@
 ﻿using System;
 using System.IO;
-using System.Text.RegularExpressions;
 using VBA.Project;
-using Excel = VBA.ExcelHandler;
+using VBA.Project.Files;
+using Excel = VBA.Handlers.ExcelHandler;
+using CustomUI = VBA.Handlers.CustomUIHandler;
+using Configuration = VBA.Handlers.ConfigurationFileHandler;
+using VBE = VBA.Executable.Files.VBE;
+using System.Collections.Generic;
 
 namespace VBA.Handlers
 {
     public static class GeneratorHandler
     {
-        public static void VerifyProjectName(ref string name, ref string _base)
+        public static bool CreateExcelFile( string excel, string excelPath, string customUI, string customUIPath)
         {
-            bool isValidName = Regex.Match(name, @"^[\w\-\(\)\[\]\/\\]+$").Length > 0;
-            bool isValidRoute = Directory.Exists(_base);
-            if (isValidName && isValidRoute)
-            {
-                _base = Regex.Replace($"{_base}\\{name}", "[/]", "\\");
-                name = $"{_base}".Split("\\")[^1];
-            }
-            else
-            {
-                if (!isValidName) Console.WriteLine($"Name '{name}' has invalid format");
-                if (!isValidRoute) Console.WriteLine($"Route'{_base}' doesn't exists");
-                name = null;
-                _base = null;
-            }
+            if (excel!=null) Excel.AddMacroEnabledExtension(ref excel);
+            if (!Verify.Name(ref excel, ref excelPath)) return false;
+            if (customUI != null) CustomUI.AddXmlExtension(ref customUI);
+            if (!Verify.Name(ref customUI, ref customUIPath)) return false;
+            if (excel == null || excelPath == null || customUI == null || customUIPath == null) return false;
+            Directory.CreateDirectory(excelPath);
+            if (!Excel.CreateExcelFile($"{excelPath}\\{excel}", $"{customUIPath}\\{customUI}")) return false;
+            return true;
         }
-        public static void VerifyProjectCustomUI(ref string customUI)
+        public static bool CreateProject(string project, string projectPath)
         {
-            if (customUI != null)
-            {
-                if (Regex.Match(Path.GetExtension(customUI), @".*\.[xX][mM][lL]").Length <= 0) customUI += ".xml";
-                if (!File.Exists(customUI)) customUI = $"{Paths.VBE.CustomUI}\\{customUI}";
-            }
-            else
-            {
-                customUI = Project.Files.VBE.CustomUI.Default;
-            }
-        }
-        public static bool CreateExcelFile(string name, string _base, string customUI)
-        {
-            VerifyProjectName(ref name, ref _base);
-            if (name != null && _base != null)
-            {
-                Paths.Base = _base;
-                VerifyProjectCustomUI(ref customUI);
-                Directory.CreateDirectory(Paths.Base);
-                if (!Excel.CreateExcelFile($"{Paths.Base}\\{name}", customUI)) return false;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public static bool CreateProject(string name, string _base, string customUI)
-        {
-            VerifyProjectName(ref name, ref _base);
-            if (name != null && _base != null)
-            {
-                Paths.Base = _base;
-                VerifyProjectCustomUI(ref customUI);
-                Directory.CreateDirectory(Paths.Base);
-                Structure.CreateFolders();
-                Structure.CreateDefaultFiles();
-                if (!Excel.CreateExcelFile($"{Paths.Base}\\{name}", customUI)) return false;
-                if (!ConfigurationFileHandler.CreatingConfigurationFile(name)) return false;
-                Console.WriteLine("Project Ready!");
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            if (!Verify.Name(ref project, ref projectPath)) return false;
+            projectPath += "\\" + project;
+            Paths.Base = projectPath;
+            Directory.CreateDirectory(projectPath);
+            if (!Configuration.CreateConfigurationFile(project)) return false;
+            string excel = project;
+            Excel.AddMacroEnabledExtension(ref excel);
+            Directory.CreateDirectory(projectPath);
+            Structure.CreateFolders();
+            Structure.CreateDefaultFiles();
+            if (!Excel.CreateExcelFile($"{projectPath}\\{excel}", VBE.CustomUI.Default)) return false;
+            Console.WriteLine("Project Ready!");
+            return true;
         }
     }
 }
