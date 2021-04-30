@@ -8,5 +8,6 @@ namespace VBA.Models
     {
         public string Version { get; set; }
         public string ProjectName { get; set; }
+        public string CustomUIDefaultName { get; set; }
     }
 }
