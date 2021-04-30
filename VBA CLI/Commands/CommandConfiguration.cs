@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using VBA.Handlers;
-using VBA.Switches;
+using VBA.Commands;
 
 namespace VBA.Commands
 {

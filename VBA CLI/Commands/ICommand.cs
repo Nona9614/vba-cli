@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace VBA.Switches
+namespace VBA.Commands
 {
     interface ICommand
     {
