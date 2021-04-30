@@ -79,7 +79,7 @@ namespace VBA.Handlers
             File.WriteAllText(FileName, "{}");
             Model.Version = "0.0.0.0";
             if (!SetProjectName(project)) return false;
-            if (!SetCustomUIDefaultName("customUI")) return false;
+            if (!SetCustomUIDefaultName("customUI.xml")) return false;
             Console.WriteLine("Configuration file created succesfully");
             SaveChanges();
             return true;
