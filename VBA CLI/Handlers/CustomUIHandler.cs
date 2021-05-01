@@ -8,25 +8,37 @@ namespace VBA.Handlers
 {
     public static class CustomUIHandler
     {
+        public const string FileDefaultName = "customUI.xml";
         // If has not xml extension then adds to it
         public static void AddXmlExtension(ref string name)
         {
             if (!IsXMLFile(name)) name += ".xml";
         }
-        //Checks for valid if xml file is valid
-        public static bool IsXMLFile(string name)
+        public static bool FileExists(string customUI)
         {
-            return Regex.Match(Path.GetExtension(name), @".*\.[xX][mM][lL]").Length > 0;
+            if (!File.Exists(customUI))
+            {
+                Console.WriteLine($"The customUI file '{customUI}' doesn't exist");
+                return false;
+            }
+            else return true;
         }
+        //Checks for valid if xml file is valid
+        public static bool IsXMLFile(string name) => Regex.Match(Path.GetExtension(name), @".*\.[xX][mM][lL]").Length > 0;
         public static bool AddCustomUI(string excel, string customUI)
         {
             if (!IsXMLFile(customUI)) return false;
-            string sTmp = "";
 
             FileStream _stream = File.Open(excel, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
             ZipArchive archive = new ZipArchive(_stream, ZipArchiveMode.Update);
             ZipArchiveEntry entryRels = archive.GetEntry("_rels/.rels");
             ZipArchiveEntry entryCustomUI = archive.GetEntry("customUI/customUI.xml") ?? archive.CreateEntry("customUI/customUI.xml");
+
+            if (entryRels == null)
+            {
+                Console.WriteLine($"The archive '{excel}' has no internal '_rels/.rels' compressed entry");
+                return false;
+            }
 
             byte[] relsBytes = File.ReadAllBytes(@$"{Executable.Files.VBE.CustomUI.Rels}");
             byte[] customUIBytes = File.ReadAllBytes(customUI ?? @$"{Executable.Files.VBE.CustomUI.Default}");
@@ -40,7 +52,7 @@ namespace VBA.Handlers
             _customUI.Dispose();
 
             archive.Dispose();
-            Console.WriteLine(@$"Custom UI added successfully: '{customUI}'");
+            Console.WriteLine(@$"Custom UI added successfully from: '{customUI}'");
 
             return true;
         }

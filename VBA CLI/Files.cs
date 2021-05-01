@@ -9,13 +9,32 @@ namespace VBA.Project
         public static class Verify
         {
             // Checks for invalid chars
-            public static bool IsValidFileName(string name) => Regex.Match(name, @"^[^:*<>|?]+$").Success;
-            public static bool IsValidFolderName(string name) => Regex.Match(name, @"^[a-zA-Z]:(\\|\/)[^:*<>|?]+$").Success;
+            public static bool IsValidFileName(string name) => Regex.Match(name, @"^[^\\\/:*<>|?]+$").Success;
+            public static bool IsValidFileNameWithMessage(string name)
+            {
+                if (!IsValidFileName(name))
+                {
+                    Console.WriteLine($"The file '{name}' has not valid format");
+                    return false;
+                }
+                return true;
+            }
+
+            public static bool IsValidFolderName(string name) => Regex.Match(name, @"^[a-zA-Z]:(\\|\/)[^:*<>|?.]+$").Success;
+            public static bool IsValidFolderNameWithMessage(string name)
+            {
+                if (!IsValidFolderName(name))
+                {
+                    Console.WriteLine($"The folder '{name}' has not valid format");
+                    return false;
+                }
+                return true;
+            }
             public static bool Name(ref string name, ref string _base)
             {
                 bool isNameInvalid = name == null;
                 bool isBaseInvalid = _base == null;
-                if ((isNameInvalid || isBaseInvalid) && !Directory.Exists(_base))
+                if ((isNameInvalid || isBaseInvalid) || !Directory.Exists(_base))
                 {
                     if (isNameInvalid) Console.WriteLine($"Name has null reference");
                     if (isBaseInvalid) Console.WriteLine($"Base has null reference");
@@ -26,7 +45,7 @@ namespace VBA.Project
                 }
                 _base = Directory.GetParent(_base + "\\remove").FullName;
                 MatchCollection matches = Regex.Matches(name, @"(\\|\/)");
-                if (matches.Count > 1)
+                if (matches.Count > 0)
                 {
                     int _index = matches[^1].Index;
                     string _subbase = name.Remove(_index);

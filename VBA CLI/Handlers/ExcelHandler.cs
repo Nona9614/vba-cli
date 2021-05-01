@@ -13,15 +13,19 @@ namespace VBA.Handlers
 {
     public static class ExcelHandler
     {
-        private static readonly List<string> xlMacroEnabledExtensions = new List<string> { "xlsm", "xltm", "xlsb", "xla", "xlam", "xll" };
-        public static bool IsExcelFile(string name)
+        public const string DefaultExcelFileName = "Project.xlsm";
+        public static bool FileExists(string excel)
         {
-            return Regex.Match(Path.GetExtension(name), @".*\.[xX][lL]*").Length > 0;
+            if (!File.Exists(excel))
+            {
+                Console.WriteLine($"The excel file '{excel}' doesn't exist");
+                return false;
+            }
+            else return true;
         }
-        public static bool IsMacroEnabledExcelFile(string name)
-        {
-            return xlMacroEnabledExtensions.Contains(Path.GetExtension(name));
-        }
+        private static readonly List<string> xlMacroEnabledExtensions = new List<string> { ".xlsm", ".xltm", ".xlsb", ".xla", ".xlam", ".xll" };
+        public static bool IsExcelFile(string name) => Regex.Match(Path.GetExtension(name), @".*\.[xX][lL]*").Length > 0;
+        public static bool IsMacroEnabledExcelFile(string name) => xlMacroEnabledExtensions.Contains(Path.GetExtension(name));
         // If has not valid macro-enabled extensions adds one
         public static void AddMacroEnabledExtension(ref string name)
         {

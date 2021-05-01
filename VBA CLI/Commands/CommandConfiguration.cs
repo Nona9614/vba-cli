@@ -26,14 +26,8 @@ namespace VBA.Commands
                 return false;
             }
             bool result = false;
-            if (!ConfigurationFileHandler.CheckForFileExistence())
-            {
-                return false;
-            }
-            else
-            {
-                ConfigurationFileHandler.SaveChanges();
-            };
+            if (!ConfigurationFileHandler.CheckForFileExistence()) return false;
+            ConfigurationFileHandler.SaveFile();
             switch (parameters[0])
             {
                 // Versionage as 'a.b.c.d'
@@ -65,7 +59,7 @@ namespace VBA.Commands
                             Console.WriteLine("Not recognized parameters");
                             break;
                     }
-                    if (result) if (!ConfigurationFileHandler.SpecifyVersion(versionage)) ConfigurationFileHandler.SaveChanges();
+                    if (result) if (!ConfigurationFileHandler.SpecifyVersion(versionage)) ConfigurationFileHandler.SaveFile();
                     break;
                 case "update-version":
                     // Updating versionage 'a.b.c.d' 
@@ -74,41 +68,43 @@ namespace VBA.Commands
                         // Defuault will only update versionage of 'd'
                         case 1:
                             ConfigurationFileHandler.UpdateVersion(d: true);
+                            ConfigurationFileHandler.SaveFile();
                             result = true;
                             break;
                         case 2:
+                            bool release = false;
+                            bool feature = false;
+                            bool bugfix = false;
+                            bool optimization = false;
                             switch (parameters[1])
                             {
                                 case "release":
                                 case "rls":
-                                    ConfigurationFileHandler.UpdateVersion(a: true);
-                                    ConfigurationFileHandler.SaveChanges();
-                                    result = true;
+                                    release = true;
                                     break;
                                 case "feature":
                                 case "ftr":
-                                    ConfigurationFileHandler.UpdateVersion(b: true);
-                                    ConfigurationFileHandler.SaveChanges();
-                                    result = true;
+                                    feature = true;
                                     break;
                                 case "bugfix":
                                 case "bfx":
-                                    ConfigurationFileHandler.UpdateVersion(c: true);
-                                    ConfigurationFileHandler.SaveChanges();
-                                    result = true;
+                                    bugfix = true;
                                     break;
                                 case "optimization":
                                 case "opt":
-                                    ConfigurationFileHandler.UpdateVersion(d: true);
-                                    ConfigurationFileHandler.SaveChanges();
-                                    result = true;
+                                    optimization = true;
                                     break;
                             }
+                            ConfigurationFileHandler.UpdateVersion(release, feature, bugfix, optimization);
+                            ConfigurationFileHandler.SaveFile();
+                            result = true;
                             break;
                         default:
                             Console.WriteLine("Not recognized parameters");
                             break;
                     }
+                    ConfigurationFileHandler.UpdateVersion(d: true);
+                    ConfigurationFileHandler.SaveFile();
                     break;
                 default:
                     Console.WriteLine($"Option '{parameters[0]}' is not valid");

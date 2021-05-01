@@ -12,7 +12,7 @@ namespace VBA.Handlers
     {
         private static string FileName
         {
-            get { return $@"{Project.Paths.Base}/configuration.json"; }
+            get { return $@"{Project.Paths.Base}\configuration.json"; }
         }
 
         private static ConfigurationFileModel _model;
@@ -23,65 +23,51 @@ namespace VBA.Handlers
             {
                 if (_model == null)
                 {
-                    string fileContents = File.ReadAllText(FileName);
-                    _model = Newtonsoft.Json.JsonConvert.DeserializeObject<ConfigurationFileModel>(fileContents);
+                    _model = new ConfigurationFileModel();
                 }
                 return _model;
             }
         }
+        public static void LoadFile()
+        {
+            string fileContents = File.ReadAllText(FileName);
+            _model = Newtonsoft.Json.JsonConvert.DeserializeObject<ConfigurationFileModel>(fileContents);
+            Console.WriteLine($"Loading configuration file from: '{FileName}'");
+        }
 
-        public static void SaveChanges()
+        public static void SaveFile()
         {
             File.WriteAllText(FileName, Newtonsoft.Json.JsonConvert.SerializeObject(_model));
-            _model = null;
-            Console.WriteLine("Saving changes to configuration file");
+            Console.WriteLine($"Saving changes to configuration file in: '{FileName}'");
         }
+
+        public static bool FileExists() => File.Exists(FileName);
 
         public static bool CheckForFileExistence()
         {
             if (!File.Exists(FileName))
             {
-                string project = null;
-                int x = 0;
-                ConsoleKeyInfo key;
-                Console.WriteLine("\nConfiguration file not found, type the project name then press 'enter' to finish or 'esc' to cancel.");
-                Console.Write("Project name --> ");
-                int pos = Console.CursorLeft;
-                while (!(x == 0xa || x == 0xd))
-                {
-                    key = Console.ReadKey();
-                    x = key.KeyChar;
-                    if (char.IsLetterOrDigit(key.KeyChar) || key.KeyChar == 0x28 || key.KeyChar == 0x29 || key.KeyChar == 0x2D || key.KeyChar >= 0x5F && key.KeyChar <= 0x5B) project += key.KeyChar;
-                    if (x == 0x8) {
-                        if (pos < Console.CursorLeft)
-                        {
-                            Console.Write(" \b");
-                        }
-                        else
-                        {
-                            Console.Write(" ");
-                            Console.CursorLeft = pos;
-                        }
-                    };
-                    if (x == 0x1b) 
-                    {
-                        Console.Write("Canceled\n");
-                        return false;
-                    }
-                }
-                if(!CreateConfigurationFile(project)) return false;
+                Console.WriteLine("\nConfiguration file not found");
+                if(!SetProjectNameByConsole() && !CreateConfigurationFile(Model.ProjectName)) return false;
             }
             return true;
         }
-
-        public static bool CreateConfigurationFile(string project)
+        public static bool CreateConfigurationFile() => CreateConfigurationFileInternal(true);
+        public static bool CreateConfigurationFile(string project) => CreateConfigurationFileInternal(false, project);
+        private static bool CreateConfigurationFileInternal(bool useConsoleForSettingName, string project = null)
         {
-            File.WriteAllText(FileName, "{}");
             Model.Version = "0.0.0.0";
-            if (!SetProjectName(project)) return false;
+            if (useConsoleForSettingName)
+            { 
+                if (!SetProjectNameByConsole()) return false; 
+            }
+            else 
+            { 
+                if (!SetProjectName(project)) return false; 
+            }
             if (!SetCustomUIDefaultName("customUI.xml")) return false;
+            File.WriteAllText(FileName, "{}");
             Console.WriteLine("Configuration file created succesfully");
-            SaveChanges();
             return true;
         }
 
@@ -149,13 +135,19 @@ namespace VBA.Handlers
             Console.WriteLine($"Setting project version {Model.Version}");
             return true;
         }
-        public static bool IsValidProjectName(string name)
+        public static bool IsValidProjectName(string name) => Regex.Match(name, @"^[\w-]+$").Success;
+        private static bool IsNullContent(string key, string value)
         {
-            return Regex.Match(name, @"^[\w-]+$").Length > 0;
+            if (value == null)
+            {
+                Console.WriteLine($"The configuration file does not have a '{key}' property");
+                return true;
+            }
+            else return false;
         }
         public static bool SetProjectName(string name)
         {
-            if (IsValidProjectName(name))
+            if (name != null && IsValidProjectName(name))
             {
                 Model.ProjectName = name;
                 return true;
@@ -166,19 +158,54 @@ namespace VBA.Handlers
                 return false;
             }
         }
-        public static string GetProjectName()
+        public static bool SetProjectNameByConsole()
         {
-            if (!IsValidProjectName(Model.ProjectName))
+            int x = 0;
+            string project = null;
+            ConsoleKeyInfo key;
+            Console.WriteLine("Type the project name then press 'enter' to finish or 'esc' to cancel.");
+            Console.Write("Project name --> ");
+            int pos = Console.CursorLeft;
+            while (!(x == 0xa || x == 0xd))
+            {
+                key = Console.ReadKey();
+                x = key.KeyChar;
+                if (char.IsLetterOrDigit(key.KeyChar) || key.KeyChar == 0x28 || key.KeyChar == 0x29 || key.KeyChar == 0x2D || key.KeyChar >= 0x5F && key.KeyChar <= 0x5B) project += key.KeyChar;
+                if (x == 0x8)
+                {
+                    if (pos < Console.CursorLeft)
+                    {
+                        Console.Write(" \b");
+                    }
+                    else
+                    {
+                        Console.Write(" ");
+                        Console.CursorLeft = pos;
+                    }
+                };
+                if (x == 0x1b)
+                {
+                    Console.Write("Canceled\n");
+                    return false;
+                }
+            }            
+            return SetProjectName(project);
+        }
+        public static bool GetProjectName(ref string name)
+        {
+            name = Model.ProjectName;
+            if (IsNullContent("ProjectName", name)) return false;
+            if (!IsValidProjectName(name))
             {
                 Console.WriteLine($"'{Model.ProjectName}' is not a valid project name");
-                return null;
+                return false;
             }
-            else return Model.ProjectName;
+            else return true;
         }
         public static bool SetCustomUIDefaultName(string name)
         {
 
-            if (CustomUIHandler.IsXMLFile(name) && Project.Files.Verify.IsValidFileName(name))
+            if (name != null && CustomUIHandler.IsXMLFile(name) && Project.Files.Verify.IsValidFileName(name))
             {
                 Model.CustomUIDefaultName = name;
                 return true;
@@ -189,14 +216,16 @@ namespace VBA.Handlers
                 return false;
             }
         }
-        public static string GetCustomUIDefaultName()
+        public static bool GetCustomUIDefaultName(ref string name)
         {
-            if (CustomUIHandler.IsXMLFile(Model.CustomUIDefaultName) && Project.Files.Verify.IsValidFileName(Model.CustomUIDefaultName)) return Model.CustomUIDefaultName;
-            else
+            name = Model.CustomUIDefaultName;
+            if (IsNullContent("CustomUIDefaultName", name)) return false;
+            if (!CustomUIHandler.IsXMLFile(name) && !Project.Files.Verify.IsValidFileName(name))
             {
                 Console.WriteLine($"'{Model.CustomUIDefaultName}' is not a customUI name");
-                return null;
+                return false;
             }
+            else return true;
         }
     }
 }
