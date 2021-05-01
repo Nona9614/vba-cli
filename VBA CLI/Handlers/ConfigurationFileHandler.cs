@@ -71,11 +71,11 @@ namespace VBA.Handlers
             return true;
         }
 
-        public static int[] VersionageStringToArrayInt(string value)
+        public static int[] VersionageStringToArrayInt(string value, bool ignoreMessages = false)
         {
             string[] versions = value.Split(".");
             if (versions.Length != 4) {
-                Console.WriteLine($"Only 4 greater than zero integer values separated by a a dot '.' string is valid");
+                if (!ignoreMessages) Console.WriteLine($"Only 4 greater than zero integer values separated by a a dot '.' string is valid");
                 return null;
             }
 
@@ -85,12 +85,12 @@ namespace VBA.Handlers
             {
                 if (!int.TryParse(versions[i], out results[i]))
                 {
-                    Console.WriteLine($"'{versions[i]}' is not a number, only greater than zero integer values are valid");
+                    if (!ignoreMessages) Console.WriteLine($"'{versions[i]}' is not a number, only greater than zero integer values are valid");
                     return null;
                 }
                 if (results[i] < 0)
                 {
-                    Console.WriteLine($"'{versions[i]}' is a negative value, only greater than zero integer values are valid");
+                    if (!ignoreMessages) Console.WriteLine($"'{versions[i]}' is a negative value, only greater than zero integer values are valid");
                     return null;
                 }
             }
@@ -111,30 +111,52 @@ namespace VBA.Handlers
 
             Console.WriteLine($"Setting project version {Model.Version}");
         }
-
-        public static void SpecifyVersion(int? a = null, int? b = null, int? c = null, int? d = null)
+        private static int IsValidVersionNumber(string number, string of)
         {
-            int[] versions = Array.ConvertAll(Model.Version.Split("."), int.Parse);
-
-            Model.Version =
-                (a != null ? a : versions[0]).ToString() + "." +
-                (b != null ? b : versions[1]).ToString() + "." +
-                (c != null ? c : versions[2]).ToString() + "." +
-                (d != null ? d : versions[3]).ToString();
-
-            Console.WriteLine($"Setting project version {Model.Version}");
+            if (!int.TryParse(number, out int result))
+            {
+                Console.WriteLine($"The {of} number '{number}' is not valid, only greater than zero integer values are valid");
+                return -1;
+            }
+            if (result < 0)
+            {
+                Console.WriteLine($"The {of} number '{number}' is a negative value, only greater than zero integer values are valid");
+                return -1;
+            }
+            return result;
         }
-
-        public static bool SpecifyVersion(string versionage)
+        public static bool SetVersion(string versionage, bool ignoreMessages = false)
         {
-            int[] versions = VersionageStringToArrayInt(versionage);
-            if (versions == null) return false;
+            int[] _versionage = VersionageStringToArrayInt(versionage, ignoreMessages);
+            if (versionage == null) return false;
 
-            Model.Version = $"{versions[0]}.{versions[1]}.{versions[2]}.{versions[3]}";
+            int _release =_versionage[0];
+            int _feature =_versionage[1];
+            int _bugfix = _versionage[2];
+            int _optimization = _versionage[3];
 
+            if (_release < 0 || _feature < 0 || _bugfix < 0 || _optimization < 0) return false;
+            else Model.Version = $"{_release}.{_feature}.{_bugfix}.{_optimization}";
+            Console.WriteLine($"Setting project version {Model.Version}");
+            return true;
+
+        }
+        public static bool SetVersion(string release = null, string feature = null, string bugfix = null, string optimization = null)
+        {
+            int[] versionage = VersionageStringToArrayInt(Model.Version);
+            if (versionage == null) return false;
+
+            int _release = release == null ? versionage[0] : IsValidVersionNumber(release, "release");
+            int _feature = feature == null ? versionage[1] : IsValidVersionNumber(feature, "feature");
+            int _bugfix = bugfix == null ? versionage[2] : IsValidVersionNumber(bugfix, "bugfix");
+            int _optimization = optimization == null ? versionage[3] : IsValidVersionNumber(optimization, "optimization");
+
+            if ( _release < 0 || _feature < 0 || _bugfix < 0 || _optimization < 0 ) return false;
+            else Model.Version = $"{_release}.{_feature}.{_bugfix}.{_optimization}";
             Console.WriteLine($"Setting project version {Model.Version}");
             return true;
         }
+
         public static bool IsValidProjectName(string name) => Regex.Match(name, @"^[\w-]+$").Success;
         private static bool IsNullContent(string key, string value)
         {

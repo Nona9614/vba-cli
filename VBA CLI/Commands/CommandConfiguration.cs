@@ -26,84 +26,109 @@ namespace VBA.Commands
                 return false;
             }
             bool result = false;
-            if (!ConfigurationFileHandler.CheckForFileExistence()) return false;
-            ConfigurationFileHandler.SaveFile();
+            if (ConfigurationFileHandler.FileExists()) ConfigurationFileHandler.LoadFile();
+            else
+            {
+                if (!ConfigurationFileHandler.CreateConfigurationFile()) return false;
+                ConfigurationFileHandler.SaveFile();
+            }
             switch (parameters[0])
             {
-                // Versionage as 'a.b.c.d'
-                case "specify-version":
-                    string versionage = "";
+                case "default-customUI":
                     switch (parameters.Count)
                     {
                         case 2:
+                            if (ConfigurationFileHandler.SetCustomUIDefaultName(parameters[1])) ConfigurationFileHandler.SaveFile();
+                            else return false;
+                        break;
+                        default:
+                            Console.WriteLine("Not correct number of parameters");
+                            break;
+                    }
+                    break;
+                // Versionage as 'a.b.c.d'
+                case "specify-version":
+                    string versionage = null;
+                    string release = null;
+                    string feature = null;
+                    string bugfix = null;
+                    string optimization = null;
+                    switch (parameters.Count)
+                    {
+                        case 2:
+                            versionage = parameters[1];
                             // Specifying versionage 'd'
-                            versionage = $"0.0.0.{parameters[1]}";
-                            result = true;
+                            optimization = parameters[1];
                             break;
                         case 3:
                             // Specifying versionage 'c.d'
-                            versionage = $"0.0.{parameters[1]}.{parameters[2]}";
-                            result = true;
+                            bugfix = parameters[2];
+                            optimization = parameters[1];
                             break;
                         case 4:
                             // Specifying versionage 'b.c.d'
-                            versionage = $"0.{parameters[1]}.{parameters[2]}.{parameters[3]}";
-                            result = true;
+                            feature = parameters[3];
+                            bugfix = parameters[2];
+                            optimization = parameters[1];
                             break;
                         case 5:
                             // Specifying versionage 'a.b.c.d'
-                            versionage = $"{parameters[1]}.{parameters[2]}.{parameters[3]}.{parameters[4]}";
-                            result = true;
+                            release = parameters[4];
+                            feature = parameters[3];
+                            bugfix = parameters[2];
+                            optimization = parameters[1];
                             break;
                         default:
-                            Console.WriteLine("Not recognized parameters");
+                            Console.WriteLine("Not valid number of parameters");
                             break;
                     }
-                    if (result) if (!ConfigurationFileHandler.SpecifyVersion(versionage)) ConfigurationFileHandler.SaveFile();
+                    if (ConfigurationFileHandler.SetVersion(versionage, true)) ConfigurationFileHandler.SaveFile();
+                    else
+                    {
+                        if (ConfigurationFileHandler.SetVersion(release, feature, bugfix, optimization)) ConfigurationFileHandler.SaveFile();
+                        else return false;
+                    }
                     break;
                 case "update-version":
                     // Updating versionage 'a.b.c.d' 
+                    bool a = false;
+                    bool b = false;
+                    bool c = false;
+                    bool d = false;
                     switch (parameters.Count)
                     {
                         // Defuault will only update versionage of 'd'
                         case 1:
-                            ConfigurationFileHandler.UpdateVersion(d: true);
-                            ConfigurationFileHandler.SaveFile();
+                            d = true;
                             result = true;
                             break;
                         case 2:
-                            bool release = false;
-                            bool feature = false;
-                            bool bugfix = false;
-                            bool optimization = false;
                             switch (parameters[1])
                             {
                                 case "release":
                                 case "rls":
-                                    release = true;
+                                    a = true;
                                     break;
                                 case "feature":
                                 case "ftr":
-                                    feature = true;
+                                    b = true;
                                     break;
                                 case "bugfix":
                                 case "bfx":
-                                    bugfix = true;
+                                    c = true;
                                     break;
                                 case "optimization":
                                 case "opt":
-                                    optimization = true;
+                                    d = true;
                                     break;
                             }
-                            ConfigurationFileHandler.UpdateVersion(release, feature, bugfix, optimization);
-                            ConfigurationFileHandler.SaveFile();
                             result = true;
                             break;
                         default:
                             Console.WriteLine("Not recognized parameters");
                             break;
                     }
-                    ConfigurationFileHandler.UpdateVersion(d: true);
+                    ConfigurationFileHandler.UpdateVersion(a, b, c, d);
                     ConfigurationFileHandler.SaveFile();
                     break;
                 default:
